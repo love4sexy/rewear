@@ -3,72 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO — Full Version</title>
+    <title>YAVITO 2.0 — Твой маркетплейс</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg: #f4f4f4; --card: #ffffff; --text: #222; --blue: #0077ff; 
-            --green: #00cc66; --red: #ff3b30; --gray: #8e8e93;
+            --green: #00cc66; --red: #ff3b30; --gray: #8e8e93; --border: #ddd;
         }
         body.dark {
-            --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366;
+            --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366; --border: #333;
         }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: 0.2s; overflow-x: hidden; }
         
-        /* HEADER & SEARCH */
-        header { background: var(--card); padding: 10px 15px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .head-top { display: flex; justify-content: space-between; align-items: center; }
-        .search-bar { display: flex; gap: 5px; }
-        .search-bar input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--gray); background: var(--bg); color: var(--text); }
-        
-        .logo { font-size: 22px; font-weight: 900; color: var(--blue); cursor: pointer; text-decoration: none; }
-        .theme-btn { font-size: 20px; cursor: pointer; }
+        /* HEADER */
+        header { background: var(--card); padding: 12px 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .head-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--blue); cursor: pointer; letter-spacing: -1px; }
+        .search-container { position: relative; width: 100%; }
+        .search-container input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; font-size: 16px; }
 
-        /* NAVIGATION */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; border-top: 1px solid var(--gray); height: 70px; z-index: 1001; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; color: var(--gray); }
+        /* NAV */
+        .bottom-nav { position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--card); display: flex; border-radius: 20px; height: 65px; z-index: 1001; box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--border); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; color: var(--gray); }
         .nav-item.active { color: var(--blue); }
-        .nav-item i { font-style: normal; font-size: 24px; margin-bottom: 2px; }
+        .nav-item i { font-style: normal; font-size: 22px; margin-bottom: 2px; }
 
-        /* CARDS */
-        .page { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
-        .active-page { display: block; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
-        .card img { width: 100%; height: 150px; object-fit: cover; }
-        .card-body { padding: 10px; }
-        .price { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-
-        /* AD DETAIL (LIKE AVITO) */
-        .ad-view-container { background: var(--card); border-radius: 15px; overflow: hidden; }
-        .ad-gallery { display: flex; overflow-x: auto; gap: 5px; height: 300px; }
-        .ad-gallery img { height: 100%; width: 100%; object-fit: contain; background: #000; flex-shrink: 0; }
-        .ad-info { padding: 20px; }
-        .seller-card { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg); border-radius: 10px; margin: 15px 0; }
+        /* GRID */
+        .page { display: none; padding: 15px; max-width: 1100px; margin: 0 auto; }
+        .active-page { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 15px; }
         
-        /* ADMIN PANEL */
-        .admin-section { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba; }
+        /* CARD */
+        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 100%; height: 170px; object-fit: cover; background: #eee; }
+        .card-body { padding: 12px; }
+        .price { font-size: 18px; font-weight: 800; color: var(--text); }
+
+        /* ADMIN MODERATION */
+        .admin-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        .mod-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
+        .mod-gallery img { height: 80px; border-radius: 5px; }
+
+        /* AD VIEW */
+        .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; }
+        .gallery-main { display: flex; overflow-x: auto; snap-type: x mandatory; background: #000; height: 350px; }
+        .gallery-main img { flex: 0 0 100%; object-fit: contain; snap-align: start; }
+        .ad-details { padding: 20px; }
 
         /* BUTTONS */
-        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; display: block; width: 100%; box-sizing: border-box; }
+        .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; }
         .btn-blue { background: var(--blue); color: white; }
+        .btn-red { background: #ffe5e5; color: var(--red); }
         .btn-green { background: var(--green); color: white; }
-        .btn-red { background: var(--red); color: white; }
 
         /* MODALS */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--card); width: 90%; max-width: 500px; padding: 20px; border-radius: 15px; max-height: 85vh; overflow-y: auto; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 25px; border-radius: 25px; max-height: 90vh; overflow-y: auto; }
 
         /* CHAT */
-        .chat-win { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: var(--bg); border-radius: 10px; }
-        .msg { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; }
-        .msg.my { align-self: flex-end; background: var(--blue); color: white; }
-        .msg.other { align-self: flex-start; background: var(--gray); color: white; }
+        .chat-area { height: 300px; overflow-y: auto; background: var(--bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .m { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .m.my { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 4px; }
+        .m.other { align-self: flex-start; background: var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+        
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
 
-        @media (max-width: 600px) {
-            .head-top .head-icons { display: none; }
+        @media (min-width: 768px) {
+            .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); }
         }
     </style>
 </head>
@@ -76,101 +82,97 @@
 
 <header>
     <div class="head-top">
-        <div class="logo" onclick="showPage('ads')">YAVITO</div>
+        <div class="logo" onclick="location.reload()">YAVITO</div>
         <div style="display: flex; gap: 15px; align-items: center;">
-            <span class="theme-btn" onclick="toggleTheme()">🌓</span>
-            <div class="head-icons" style="display: flex; gap: 15px;">
-                <span onclick="showPage('chats')">💬</span>
-                <span onclick="showPage('profile')">👤</span>
-            </div>
+            <span style="cursor:pointer; font-size: 20px;" onclick="toggleTheme()">🌓</span>
+            <span style="cursor:pointer; font-size: 20px;" onclick="showPage('chats')">💬</span>
+            <span style="cursor:pointer; font-size: 20px;" onclick="showPage('profile')">👤</span>
         </div>
     </div>
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Поиск объявлений..." oninput="searchAds()">
+    <div class="search-container">
+        <input type="text" id="mainSearch" placeholder="Поиск (например: Raf Simons)..." oninput="runSearch()">
     </div>
 </header>
 
-<div id="page-ads" class="page active-page">
-    <div id="admin-panel" style="display:none">
-        <div class="admin-section">
-            <b>🛡️ Кабинет администратора</b>
-            <div id="mod-list" style="margin-top:10px;"></div>
-        </div>
+<div id="page-home" class="page active-page">
+    <div id="admin-zone" class="admin-box" style="display:none;">
+        <h3>🛡️ Панель управления</h3>
+        <div id="mod-items-container"></div>
     </div>
-    <div id="ads-list" class="grid"></div>
+    <h2 id="feed-title">Рекомендации</h2>
+    <div id="ads-grid" class="grid"></div>
 </div>
 
 <div id="page-view" class="page">
-    <button onclick="showPage('ads')" style="margin-bottom:10px; background:none; border:none; color:var(--blue); font-weight:bold;">← Назад</button>
-    <div id="ad-view-content" class="ad-view-container"></div>
+    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад к поиску</button>
+    <div id="ad-full-content" class="ad-full"></div>
 </div>
 
 <div id="page-chats" class="page">
-    <h3>Сообщения</h3>
-    <div id="support-entry" class="seller-card" onclick="openSupport()" style="cursor:pointer; border-left: 5px solid var(--blue);">
-        <div>🆘</div>
-        <div><b>Служба поддержки</b><br><small>Задать вопрос админу</small></div>
+    <h2>Сообщения</h2>
+    <div class="mod-card" onclick="openSupport()" style="border-left: 5px solid var(--blue); cursor:pointer;">
+        <b>🆘 Служба поддержки</b><br><small>Мы всегда на связи</small>
     </div>
-    <div id="chats-list"></div>
+    <div id="chats-list-container"></div>
 </div>
 
 <div id="page-profile" class="page">
-    <div style="text-align:center; position: relative;">
+    <div style="text-align:center;">
         <label>
-            <img id="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; cursor:pointer;">
-            <input type="file" id="avatarInput" style="display:none" onchange="uploadAvatar(this)">
+            <img id="u-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue);">
+            <input type="file" id="ava-file" style="display:none" onchange="uploadNewAvatar(this)">
         </label>
-        <div id="avatar-status" style="font-size:12px; margin-top:5px;"></div>
-        <h2 id="user-name-display" style="margin:10px 0;">Загрузка...</h2>
-        <button class="btn" style="width:auto; display:inline-block; font-size:12px;" onclick="editName()">Изм. имя</button>
-        <div id="user-rating" style="color: #ff9500; font-weight:bold; margin-top:10px;">⭐ 0.0 (0 отзывов)</div>
+        <div id="ava-status" style="font-size:12px; color:var(--gray); margin-top:5px;"></div>
+        <h2 id="u-name" style="margin:10px 0;">...</h2>
+        <button class="btn" style="width:auto; padding:5px 15px; font-size:12px;" onclick="changeName()">Сменить имя</button>
+        <div style="margin-top:15px; font-weight:bold; color:#ff9500;">⭐ 0.0 (0 отзывов)</div>
     </div>
-    <hr style="margin:20px 0; opacity:0.2;">
-    <h3>Мои объявления</h3>
-    <div id="my-ads-list"></div>
-    <button class="btn btn-red" style="margin-top:30px;" onclick="auth.signOut()">Выйти</button>
+    <hr style="margin:25px 0; opacity:0.1;">
+    <h3>Мои товары</h3>
+    <div id="my-ads-container"></div>
+    <button class="btn btn-red" style="margin-top:40px;" onclick="auth.signOut()">Выйти из аккаунта</button>
 </div>
 
-<div id="modal-ad" class="modal">
+<div id="modal-post" class="modal">
     <div class="modal-content">
-        <h3 id="ad-modal-title">Подать объявление</h3>
-        <input type="file" id="ad-files" multiple accept="image/*" style="margin-bottom:10px;">
-        <input type="text" id="ad-title" placeholder="Название">
-        <input type="number" id="ad-price" placeholder="Цена (₽)">
-        <select id="ad-cat">
-            <option value="Одежда">Одежда</option>
+        <h2>Новое объявление</h2>
+        <p style="font-size:12px; color:var(--gray);">Можно выбрать несколько фото сразу</p>
+        <input type="file" id="post-images" multiple accept="image/*">
+        <input type="text" id="post-title" placeholder="Название (например: Rick Owens Dunks)">
+        <input type="number" id="post-price" placeholder="Цена (₽)">
+        <select id="post-cat">
+            <option value="Одежда">Одежда / Обувь</option>
             <option value="Электроника">Электроника</option>
-            <option value="Дом">Дом</option>
-            <option value="Транспорт">Транспорт</option>
+            <option value="Аксессуары">Аксессуары</option>
+            <option value="Другое">Другое</option>
         </select>
-        <input type="text" id="ad-loc" placeholder="Местоположение (город)">
-        <textarea id="ad-desc" rows="4" placeholder="Описание"></textarea>
-        <button class="btn btn-blue" id="submitAdBtn" onclick="saveAd()">Опубликовать</button>
-        <button class="btn" onclick="closeModal('modal-ad')">Отмена</button>
+        <input type="text" id="post-loc" placeholder="Город">
+        <textarea id="post-desc" rows="5" placeholder="Описание товара, состояние..."></textarea>
+        <button class="btn btn-blue" id="sendAdBtn" onclick="submitAd()">Опубликовать</button>
+        <button class="btn" onclick="closeModal('modal-post')" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
 
 <div id="modal-chat" class="modal">
-    <div class="modal-content">
-        <h3 id="chat-header">Чат</h3>
-        <div id="chat-messages" class="chat-win"></div>
-        <div style="display:flex; gap:5px; margin-top:10px;">
-            <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--gray);">
-            <button class="btn btn-blue" style="width:60px;" onclick="sendMessage()">➤</button>
+    <div class="modal-content" style="padding:15px;">
+        <h3 id="chat-with-name">Чат</h3>
+        <div id="chat-messages" class="chat-area"></div>
+        <div style="display:flex; gap:8px; margin-top:15px;">
+            <input type="text" id="msg-input" placeholder="Сообщение..." style="margin:0;">
+            <button class="btn btn-blue" style="width:60px; margin:0;" onclick="sendChatMessage()">➤</button>
         </div>
         <button class="btn" onclick="closeModal('modal-chat')" style="margin-top:10px;">Закрыть</button>
     </div>
 </div>
 
 <nav class="bottom-nav">
-    <div class="nav-item active" onclick="showPage('ads')"><i>🏠</i>Главная</div>
-    <div class="nav-item" onclick="openModal('modal-ad')"><i>➕</i>Подать</div>
+    <div class="nav-item active" onclick="showPage('home')"><i>🏠</i>Главная</div>
+    <div class="nav-item" onclick="openModal('modal-post')"><i>➕</i>Выложить</div>
     <div class="nav-item" onclick="showPage('chats')"><i>💬</i>Чаты</div>
     <div class="nav-item" onclick="showPage('profile')"><i>👤</i>Профиль</div>
 </nav>
 
 <script>
-    // КОНФИГ
     const firebaseConfig = {
         apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
         authDomain: "yavito-7930e.firebaseapp.com",
@@ -179,277 +181,243 @@
         messagingSenderId: "560885508854",
         appId: "1:560885508854:web:f7c22cebdfde2279dedad7"
     };
-    const IMGBB_KEY = 'd3e0d626da4b69b9cadd392fe36efeac';
-    const ADMIN_EMAIL = "sobakastalina123@gmail.com";
+    const IMGBB_API = 'd3e0d626da4b69b9cadd392fe36efeac';
+    const ADMIN_ID = "sobakastalina123@gmail.com";
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let currentUser = null;
-    let currentChatId = null;
-    let allAds = [];
+    let user = null;
+    let currentChat = null;
+    let rawAds = [];
 
-    // --- ИНИЦИАЛИЗАЦИЯ ---
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            currentUser = user;
-            initUserRecord();
-            if(user.email === ADMIN_EMAIL) {
-                document.getElementById('admin-panel').style.display = 'block';
-                loadModerationQueue();
+    // --- СИСТЕМА ---
+    auth.onAuthStateChanged(u => {
+        if(u) {
+            user = u;
+            checkUser();
+            loadFeed();
+            if(u.email === ADMIN_ID) {
+                document.getElementById('admin-zone').style.display = 'block';
+                initAdmin();
             }
-            loadAds();
-            loadProfile();
         } else {
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
         }
     });
 
-    async function initUserRecord() {
-        const doc = await db.collection('users').doc(currentUser.uid).get();
+    async function checkUser() {
+        const doc = await db.collection('users').doc(user.uid).get();
         if(!doc.exists) {
-            await db.collection('users').doc(currentUser.uid).set({
-                name: currentUser.displayName,
+            await db.collection('users').doc(user.uid).set({
+                name: user.displayName,
                 avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                avatarStatus: 'active',
-                rating: 0,
-                reviews: 0
+                joined: new Date().toLocaleDateString()
             });
         }
-        db.collection('users').doc(currentUser.uid).onSnapshot(s => {
-            const data = s.data();
-            document.getElementById('user-name-display').innerText = data.name;
-            document.getElementById('user-avatar').src = data.avatar;
-            document.getElementById('avatar-status').innerText = data.avatarStatus === 'pending' ? '⌛ Аватар на проверке' : '';
+        db.collection('users').doc(user.uid).onSnapshot(s => {
+            const d = s.data();
+            document.getElementById('u-name').innerText = d.name;
+            document.getElementById('u-avatar').src = d.avatar;
+            document.getElementById('ava-status').innerText = d.pendingAva ? "⌛ Фото на проверке" : "";
         });
     }
 
-    // --- ТЕМЫ ---
     function toggleTheme() {
-        document.getElementById('body').classList.toggle('dark');
-        localStorage.setItem('theme', document.getElementById('body').classList.contains('dark') ? 'dark' : 'light');
+        document.body.classList.toggle('dark');
+        localStorage.setItem('yv_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
-    if(localStorage.getItem('theme') === 'dark') document.getElementById('body').classList.add('dark');
+    if(localStorage.getItem('yv_theme') === 'dark') document.body.classList.add('dark');
+
+    // --- ФОТО ХОСТИНГ ---
+    async function upImg(file) {
+        let fd = new FormData(); fd.append("image", file);
+        let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
+        let d = await r.json(); return d.data.url;
+    }
 
     // --- ОБЪЯВЛЕНИЯ ---
-    async function uploadToImgBB(file) {
-        let formData = new FormData();
-        formData.append("image", file);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
-        const data = await res.json();
-        return data.data.url;
-    }
+    async function submitAd() {
+        const btn = document.getElementById('sendAdBtn');
+        btn.disabled = true; btn.innerText = "Загрузка фото...";
+        
+        const files = document.getElementById('post-images').files;
+        let urls = [];
+        for(let f of files) urls.push(await upImg(f));
 
-    async function saveAd() {
-        const btn = document.getElementById('submitAdBtn');
-        btn.disabled = true; btn.innerText = 'Загрузка...';
-
-        const files = document.getElementById('ad-files').files;
-        let photos = [];
-        for(let f of files) photos.push(await uploadToImgBB(f));
-
-        const ad = {
-            title: document.getElementById('ad-title').value,
-            price: document.getElementById('ad-price').value,
-            cat: document.getElementById('ad-cat').value,
-            loc: document.getElementById('ad-loc').value,
-            desc: document.getElementById('ad-desc').value,
-            photos: photos,
-            authorId: currentUser.uid,
-            authorName: currentUser.displayName,
+        await db.collection('ads').add({
+            title: document.getElementById('post-title').value,
+            price: document.getElementById('post-price').value,
+            cat: document.getElementById('post-cat').value,
+            loc: document.getElementById('post-loc').value,
+            desc: document.getElementById('post-desc').value,
+            photos: urls,
+            authorId: user.uid,
+            authorName: user.displayName,
             status: 'pending',
-            createdAt: new Date()
-        };
-
-        await db.collection('ads').add(ad);
-        alert('Объявление отправлено на модерацию!');
+            time: new Date()
+        });
+        alert("Успешно! Объявление появится после проверки.");
         location.reload();
     }
 
-    function loadAds() {
-        db.collection('ads').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(snap => {
-            allAds = [];
-            snap.forEach(doc => allAds.push({id: doc.id, ...doc.data()}));
-            renderAds(allAds);
+    function loadFeed() {
+        db.collection('ads').where('status','==','active').onSnapshot(snap => {
+            rawAds = [];
+            snap.forEach(d => rawAds.push({id: d.id, ...d.data()}));
+            // Рандомная сортировка
+            renderAds(rawAds.sort(() => Math.random() - 0.5));
         });
     }
 
-    function renderAds(list) {
-        let html = '';
-        list.forEach(ad => {
-            html += `
-                <div class="card" onclick="viewAd('${ad.id}')">
-                    <img src="${ad.photos[0] || ''}">
-                    <div class="card-body">
-                        <div class="price">${ad.price} ₽</div>
-                        <div style="font-size:14px; height:40px; overflow:hidden;">${ad.title}</div>
-                        <div style="color:var(--gray); font-size:12px; margin-top:5px;">${ad.loc}</div>
-                    </div>
+    function renderAds(arr) {
+        let h = '';
+        arr.forEach(ad => {
+            h += `
+            <div class="card" onclick="openAd('${ad.id}')">
+                <img src="${ad.photos[0] || ''}">
+                <div class="card-body">
+                    <div class="price">${ad.price} ₽</div>
+                    <div style="font-size:14px; margin:4px 0; height:38px; overflow:hidden;">${ad.title}</div>
+                    <div style="font-size:12px; color:var(--gray);">${ad.loc}</div>
                 </div>
-            `;
+            </div>`;
         });
-        document.getElementById('ads-list').innerHTML = html || 'Ничего не найдено';
+        document.getElementById('ads-grid').innerHTML = h || 'Ничего нет :(';
     }
 
-    async function viewAd(id) {
-        const doc = await db.collection('ads').doc(id).get();
-        const ad = doc.data();
+    async function openAd(id) {
+        const d = await db.collection('ads').doc(id).get();
+        const ad = d.data();
         showPage('view');
-        
-        let galleryHtml = ad.photos.map(p => `<img src="${p}">`).join('');
-        
-        document.getElementById('ad-view-content').innerHTML = `
-            <div class="ad-gallery">${galleryHtml}</div>
-            <div class="ad-info">
+        let imgs = ad.photos.map(p => `<img src="${p}">`).join('');
+        document.getElementById('ad-full-content').innerHTML = `
+            <div class="gallery-main">${imgs}</div>
+            <div class="ad-details">
                 <h1 style="margin:0;">${ad.price} ₽</h1>
-                <h2 style="margin:10px 0; font-weight:normal;">${ad.title}</h2>
-                <p style="color:var(--gray);">${ad.loc} • ${ad.cat}</p>
-                <hr style="opacity:0.1;">
-                <p style="white-space: pre-wrap;">${ad.desc}</p>
-                <div class="seller-card">
-                    <div style="width:50px; height:50px; background:#eee; border-radius:50%; font-size:24px; display:grid; place-items:center;">👤</div>
-                    <div>
-                        <b>${ad.authorName}</b><br>
-                        <small>⭐ 0.0 (0 отзывов)</small>
-                    </div>
+                <h2 style="font-weight:normal; margin:10px 0;">${ad.title}</h2>
+                <p style="color:var(--gray); margin-bottom:20px;">${ad.loc} • ${ad.cat}</p>
+                <div style="white-space:pre-wrap; line-height:1.5;">${ad.desc}</div>
+                <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px;">
+                    <div style="width:45px; height:45px; border-radius:50%; background:#eee; display:grid; place-items:center;">👤</div>
+                    <div><b>${ad.authorName}</b><br><small>⭐ 0.0 (0 отзывов)</small></div>
                 </div>
-                <button class="btn btn-blue" onclick="startChat('${ad.authorId}', '${ad.title}')">Написать сообщение</button>
+                <button class="btn btn-blue" style="margin-top:15px;" onclick="startChat('${ad.authorId}','${ad.title}')">Написать продавцу</button>
             </div>
         `;
     }
 
-    // --- МОДЕРАЦИЯ И АДМИНКА ---
-    function loadModerationQueue() {
-        // Очередь объявлений
-        db.collection('ads').where('status', '==', 'pending').onSnapshot(snap => {
-            let html = '<b>Объявления:</b><br>';
+    // --- МОДЕРАЦИЯ ---
+    function initAdmin() {
+        db.collection('ads').where('status','==','pending').onSnapshot(snap => {
+            let h = '<b>Очередь объявлений:</b><br>';
             snap.forEach(doc => {
                 const ad = doc.data();
-                html += `<div style="padding:5px; border-bottom:1px solid #ccc;">
-                    ${ad.title} | <button onclick="modAd('${doc.id}', 'active')">✅</button> 
-                    <button onclick="modAd('${doc.id}', 'rejected')">❌</button>
+                h += `
+                <div class="mod-card">
+                    <div class="mod-gallery">${ad.photos.map(p=>`<img src="${p}">`).join('')}</div>
+                    <b>${ad.title}</b> — ${ad.price} ₽<br>
+                    <small>${ad.desc}</small><br>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn btn-green" style="padding:5px;" onclick="modAd('${doc.id}','active')">Одобрить</button>
+                        <button class="btn btn-red" style="padding:5px;" onclick="modAd('${doc.id}','rejected')">Удалить</button>
+                    </div>
                 </div>`;
             });
-            document.getElementById('mod-list').innerHTML = html;
+            document.getElementById('mod-items-container').innerHTML = h;
         });
-
-        // Очередь аватарок
-        db.collection('users').where('avatarStatus', '==', 'pending').onSnapshot(snap => {
-            snap.forEach(doc => {
-                const u = doc.data();
-                const div = document.createElement('div');
-                div.innerHTML = `Аватар ${u.name}: <img src="${u.pendingAvatar}" style="width:30px;"> 
-                <button onclick="modAvatar('${doc.id}', true)">✅</button>`;
-                document.getElementById('mod-list').appendChild(div);
+        
+        db.collection('users').where('pendingAva','!=',null).onSnapshot(snap => {
+            snap.forEach(d => {
+                const u = d.data();
+                if(u.pendingAva) {
+                    let div = document.createElement('div');
+                    div.className = "mod-card";
+                    div.innerHTML = `Аватар ${u.name}: <img src="${u.pendingAva}" width="50"><br>
+                    <button onclick="approveAva('${d.id}','${u.pendingAva}')">✅</button>`;
+                    document.getElementById('mod-items-container').appendChild(div);
+                }
             });
         });
     }
-
     function modAd(id, s) { db.collection('ads').doc(id).update({status: s}); }
-
-    async function uploadAvatar(input) {
-        const url = await uploadToImgBB(input.files[0]);
-        await db.collection('users').doc(currentUser.uid).update({
-            pendingAvatar: url,
-            avatarStatus: 'pending'
-        });
-        alert('Фото отправлено модератору!');
+    async function approveAva(uid, url) { 
+        await db.collection('users').doc(uid).update({avatar: url, pendingAva: firebase.firestore.FieldValue.delete()}); 
     }
 
-    async function modAvatar(uid, ok) {
-        const u = (await db.collection('users').doc(uid).get()).data();
-        if(ok) {
-            await db.collection('users').doc(uid).update({
-                avatar: u.pendingAvatar,
-                avatarStatus: 'active'
-            });
-        }
+    // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
+    async function uploadNewAvatar(input) {
+        const url = await upImg(input.files[0]);
+        await db.collection('users').doc(user.uid).update({pendingAva: url});
+        alert("Фото отправлено админу!");
     }
 
-    // --- ПРОФИЛЬ ---
-    async function loadProfile() {
-        db.collection('ads').where('authorId', '==', currentUser.uid).onSnapshot(snap => {
-            let html = '';
+    function loadProfile() {
+        db.collection('ads').where('authorId','==',user.uid).onSnapshot(snap => {
+            let h = '';
             snap.forEach(doc => {
                 const ad = doc.data();
-                let color = ad.status === 'active' ? 'black' : (ad.status === 'pending' ? '#ff9500' : 'red');
-                html += `
-                    <div class="seller-card" style="justify-content:space-between">
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <img src="${ad.photos[0]}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
-                            <div>
-                                <b>${ad.title}</b><br>
-                                <small style="color:${color}">${ad.status.toUpperCase()}</small>
-                            </div>
-                        </div>
-                        <button class="btn btn-red" style="width:40px; padding:5px;" onclick="deleteAd('${doc.id}')">🗑️</button>
+                let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Удалено');
+                let clr = ad.status === 'active' ? 'black' : (ad.status === 'pending' ? '#ff9500' : 'red');
+                h += `
+                <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                        <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
                     </div>
-                `;
+                    <button class="btn btn-red" style="width:40px; padding:8px;" onclick="deleteMyAd('${doc.id}')">🗑️</button>
+                </div>`;
             });
-            document.getElementById('my-ads-list').innerHTML = html || 'У вас нет объявлений';
+            document.getElementById('my-ads-container').innerHTML = h || 'У вас пока нет товаров';
         });
     }
 
-    function deleteAd(id) { if(confirm('Удалить?')) db.collection('ads').doc(id).delete(); }
-
-    function editName() {
-        const n = prompt("Новое имя:");
-        if(n) db.collection('users').doc(currentUser.uid).update({name: n});
-    }
-
-    // --- ЧАТЫ ---
-    function openSupport() {
-        currentChatId = "support_" + currentUser.uid;
-        document.getElementById('chat-header').innerText = "Поддержка";
-        openModal('modal-chat');
-        listenMessages();
-    }
-
-    function startChat(otherId, title) {
-        currentChatId = [currentUser.uid, otherId].sort().join("_");
-        document.getElementById('chat-header').innerText = title;
-        openModal('modal-chat');
-        listenMessages();
-    }
-
-    function listenMessages() {
-        db.collection('chats').doc(currentChatId).collection('messages').orderBy('time').onSnapshot(snap => {
-            let html = '';
-            snap.forEach(m => {
-                const d = m.data();
-                const isMy = d.senderId === currentUser.uid;
-                html += `<div class="msg ${isMy ? 'my' : 'other'}">${d.text}</div>`;
-            });
-            const win = document.getElementById('chat-messages');
-            win.innerHTML = html;
-            win.scrollTop = win.scrollHeight;
-        });
-    }
-
-    async function sendMessage() {
-        const input = document.getElementById('chat-input');
-        if(!input.value) return;
-        await db.collection('chats').doc(currentChatId).collection('messages').add({
-            text: input.value,
-            senderId: currentUser.uid,
-            time: new Date()
-        });
-        input.value = '';
-    }
+    function deleteMyAd(id) { if(confirm("Удалить объявление?")) db.collection('ads').doc(id).delete(); }
+    function changeName() { let n = prompt("Новое имя:"); if(n) db.collection('users').doc(user.uid).update({name: n}); }
 
     // --- ПОИСК ---
-    function searchAds() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allAds.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
+    function runSearch() {
+        const q = document.getElementById('mainSearch').value.toLowerCase();
+        const filtered = rawAds.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
+        document.getElementById('feed-title').innerText = q ? `Результаты по запросу "${q}"` : "Рекомендации";
         renderAds(filtered);
     }
 
-    // --- ВСПОМОГАТЕЛЬНОЕ ---
+    // --- ЧАТЫ ---
+    function openSupport() { startChat("SUPPORT_ADMIN", "Служба поддержки"); }
+    function startChat(otherId, name) {
+        if(otherId === user.uid) return;
+        currentChat = [user.uid, otherId].sort().join("_");
+        document.getElementById('chat-with-name').innerText = name;
+        openModal('modal-chat');
+        listenMsgs();
+    }
+    function listenMsgs() {
+        db.collection('chats').doc(currentChat).collection('messages').orderBy('time').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(m => {
+                const d = m.data();
+                h += `<div class="m ${d.senderId === user.uid ? 'my' : 'other'}">${d.text}</div>`;
+            });
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = h; box.scrollTop = box.scrollHeight;
+        });
+    }
+    async function sendChatMessage() {
+        const i = document.getElementById('msg-input'); if(!i.value) return;
+        await db.collection('chats').doc(currentChat).collection('messages').add({
+            text: i.value, senderId: user.uid, time: new Date()
+        });
+        i.value = '';
+    }
+
+    // --- ИНТЕРФЕЙС ---
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById('page-'+id).classList.add('active-page');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(id === 'profile') loadProfile();
     }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
