@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO 5.0 — Исправленная версия</title>
+    <title>YAVITO 4.0 — Финал</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -11,161 +11,123 @@
         :root {
             --bg: #f4f4f4; --card: #ffffff; --text: #222; --blue: #0077ff; 
             --green: #00cc66; --red: #ff3b30; --gray: #8e8e93; --border: #ddd;
-            --warning: #ff9500;
         }
-        body.dark {
-            --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366; --border: #333;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: 0.2s; overflow-x: hidden; }
+        body.dark { --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366; --border: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: 0.2s; }
         
+        /* HEADER */
         header { background: var(--card); padding: 12px 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .head-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .logo { font-size: 24px; font-weight: 900; color: var(--blue); cursor: pointer; letter-spacing: -1px; }
         .search-container input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; font-size: 16px; }
 
+        /* NAV */
         .bottom-nav { position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--card); display: flex; border-radius: 20px; height: 65px; z-index: 1001; box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--border); }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; color: var(--gray); position: relative; }
         .nav-item.active { color: var(--blue); }
         .nav-item i { font-style: normal; font-size: 22px; margin-bottom: 2px; }
-        .nav-badge { position: absolute; top: 8px; right: 25%; background: var(--red); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none; }
-        .nav-badge.show { display: block; }
+        .badge { display: none; position: absolute; top: 10px; right: 25px; width: 10px; height: 10px; background: var(--red); border-radius: 50%; }
 
+        /* PAGES & GRID */
         .page { display: none; padding: 15px; max-width: 1100px; margin: 0 auto; }
         .active-page { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 15px; }
         
+        /* CARD */
         .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 170px; object-fit: cover; background: #eee; }
         .card-body { padding: 12px; }
         .price { font-size: 18px; font-weight: 800; color: var(--text); }
 
-        .admin-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 15px; padding: 15px; margin-bottom: 20px; color: #856404; }
+        /* MODERATION */
+        .admin-box { background: rgba(255, 149, 0, 0.1); border: 1px solid #ff9500; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
         .mod-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; color: var(--text); }
-        .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 5px; }
-        .mod-gallery img { height: 80px; border-radius: 5px; flex-shrink: 0; }
+        .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
+        .mod-gallery img { height: 120px; border-radius: 5px; object-fit: contain; background: #000; }
 
-        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; position: relative; }
-        .chat-list-item:hover { background: var(--bg); transform: scale(0.99); }
-        .chat-list-item.pinned { border-left: 4px solid var(--blue); }
-        .chat-list-item.muted { opacity: 0.6; }
-        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; flex-shrink: 0; }
-        .chat-menu-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; padding: 5px; cursor: pointer; color: var(--gray); }
-        .chat-menu-btn:hover { color: var(--text); }
-
-        .chat-menu-popup { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 5px 0; z-index: 100; display: none; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        .chat-menu-popup.show { display: block; }
-        .chat-menu-popup button { display: block; width: 100%; padding: 10px 15px; border: none; background: none; text-align: left; cursor: pointer; font-size: 13px; color: var(--text); }
-        .chat-menu-popup button:hover { background: var(--bg); }
-
-        .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
-        .gallery-main { display: flex; overflow-x: auto; snap-type: x mandatory; background: #000; height: 350px; }
-        .gallery-main img { flex: 0 0 100%; object-fit: contain; snap-align: start; }
+        /* AD VIEW */
+        .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); margin-top: 10px; }
+        .gallery-main { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; background: #000; height: 40vh; min-height: 300px; }
+        .gallery-main img { flex: 0 0 100%; object-fit: contain; scroll-snap-align: start; }
         .ad-details { padding: 20px; }
 
-        .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; }
-        .btn:active { transform: scale(0.97); }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-red { background: #ffe5e5; color: var(--red); }
-        .btn-green { background: var(--green); color: white; }
-        .btn-small { padding: 8px 12px; width: auto; font-size: 13px; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 25px; border-radius: 25px; max-height: 90vh; overflow-y: auto; }
-
-        .chat-area { height: 350px; overflow-y: auto; background: var(--bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        /* CHATS */
+        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; position: relative; }
+        .chat-list-item.pinned { border-left: 5px solid var(--blue); }
+        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; object-fit: cover; }
+        .chat-area { height: 60vh; overflow-y: auto; background: var(--bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         .m { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
         .m.my { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 4px; }
         .m.other { align-self: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-        .m-sender { font-size: 11px; color: var(--gray); margin-bottom: 2px; }
-        
+        .m-name { font-size: 10px; opacity: 0.7; margin-bottom: 2px; }
+
+        /* CHAT HEADER & DROPDOWN */
+        .chat-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; position: relative; }
+        .dropdown { display: none; position: absolute; top: 40px; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2500; overflow: hidden; width: 220px; }
+        .dropdown.show { display: block; }
+        .drop-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .drop-item:last-child { border-bottom: none; }
+        .drop-item:hover { background: var(--bg); }
+
+        /* BUTTONS & MODALS */
+        .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-red { background: #ffe5e5; color: var(--red); }
+        .btn-green { background: var(--green); color: white; }
         input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 25px; border-radius: 25px; max-height: 90vh; overflow-y: auto; position: relative; }
 
-        .stars { display: flex; gap: 5px; justify-content: center; font-size: 30px; cursor: pointer; }
-        .stars span { color: var(--gray); transition: 0.2s; }
-        .stars span.active { color: var(--warning); }
-        .stars span:hover { transform: scale(1.2); }
+        /* RATING STARS */
+        .stars { display: flex; gap: 10px; justify-content: center; font-size: 30px; cursor: pointer; color: var(--gray); margin: 15px 0; }
+        .stars span.active { color: #ff9500; }
 
-        .auth-block { text-align: center; padding: 40px 20px; }
-        .auth-block h2 { color: var(--blue); }
-
-        .edit-ad-form { background: var(--bg); padding: 15px; border-radius: 12px; margin-top: 15px; }
-
-        @media (min-width: 768px) {
-            .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); }
-            .gallery-main { height: 450px; }
-        }
+        @media (min-width: 768px) { .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); } }
     </style>
 </head>
-<body id="body">
+<body>
 
 <header>
     <div class="head-top">
-        <div class="logo" onclick="showPage('home')">YAVITO</div>
+        <div class="logo" onclick="location.reload()">YAVITO</div>
         <div style="display: flex; gap: 15px; align-items: center;">
             <span style="cursor:pointer; font-size: 20px;" onclick="toggleTheme()">🌓</span>
-            <span style="cursor:pointer; font-size: 20px; position:relative;" onclick="showPage('chats')">
-                💬<span id="msg-badge" class="nav-badge">0</span>
-            </span>
-            <span style="cursor:pointer; font-size: 20px;" onclick="showPage('profile')">👤</span>
+            <span id="auth-btn" style="cursor:pointer; font-size: 14px; font-weight:bold; color:var(--blue);" onclick="login()">Войти</span>
         </div>
     </div>
     <div class="search-container">
-        <input type="text" id="mainSearch" placeholder="Поиск товаров..." oninput="runSearch()">
+        <input type="text" id="mainSearch" placeholder="Поиск (например: Телефон)..." oninput="runSearch()">
     </div>
 </header>
 
-<!-- AUTH WARNING - показывается ТОЛЬКО если не авторизован -->
-<div id="auth-warning" class="modal">
-    <div class="modal-content auth-block">
-        <h2>🔐 Вход требуется</h2>
-        <p>Для просмотра объявлений, чатов и публикации необходимо войти в аккаунт.</p>
-        <button class="btn btn-blue" onclick="signIn()">Войти через Google</button>
-    </div>
-</div>
-
-<div id="page-home" class="page">
+<div id="page-home" class="page active-page">
     <div id="admin-zone" class="admin-box" style="display:none;">
-        <h3>🛡️ Панель администратора</h3>
-        <div id="mod-ads-container"></div>
-        <hr style="opacity:0.2; margin:20px 0;">
-        <div id="mod-avatars-container"></div>
-        <hr style="opacity:0.2; margin:20px 0;">
-        <div id="mod-reviews-container">
-            <h4>📝 Отзывы на модерации:</h4>
-            <div id="reviews-list"></div>
-        </div>
+        <h3 style="margin-top:0;">🛡️ Панель управления</h3>
+        <button class="btn btn-blue" style="margin-bottom:10px;" onclick="showPage('admin')">Открыть модерацию</button>
     </div>
     <h2 id="feed-title">Рекомендации</h2>
     <div id="ads-grid" class="grid"></div>
 </div>
 
 <div id="page-view" class="page">
-    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer; font-size: 16px;">← Назад</button>
+    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer; font-size: 16px;">← Назад к поиску</button>
     <div id="ad-full-content" class="ad-full"></div>
 </div>
 
 <div id="page-chats" class="page">
     <h2>Сообщения</h2>
-    
-    <div class="chat-list-item" onclick="openSupport()" style="border-left: 5px solid var(--warning);">
-        <div class="chat-avatar" style="background: var(--warning);">🆘</div>
+    <div class="chat-list-item" onclick="openSupport()" style="border-left: 5px solid #ff9500;">
+        <div class="chat-avatar" style="background: #ff9500;">🆘</div>
         <div>
             <b>Служба поддержки</b><br>
-            <small style="color:var(--gray);">Написать администратору</small>
+            <small style="color:var(--gray);">Связь с администрацией</small>
         </div>
     </div>
-
-    <div id="admin-support-chats" style="display:none; margin-bottom: 20px;">
-        <h3 style="color:var(--red);">🚨 Запросы в поддержку:</h3>
-        <div id="support-tickets-list"></div>
-        <hr style="opacity:0.2;">
-    </div>
-
     <h3>Ваши диалоги:</h3>
-    <div id="user-chats-list">Загрузка...</div>
+    <div id="user-chats-list">Загрузка чатов...</div>
 </div>
 
 <div id="page-profile" class="page">
@@ -174,135 +136,103 @@
             <img id="u-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue); cursor:pointer;">
             <input type="file" id="ava-file" style="display:none" onchange="uploadNewAvatar(this)">
         </label>
-        <div id="ava-status" style="font-size:12px; color:var(--gray); margin-top:5px;"></div>
+        <div id="ava-status" style="font-size:12px; color:#ff9500; margin-top:5px; font-weight:bold;"></div>
         <h2 id="u-name" style="margin:10px 0;">...</h2>
-        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-            <button class="btn btn-small" style="width:auto;" onclick="changeName()">✏️ Имя</button>
-            <button class="btn btn-small" style="width:auto;" onclick="changePhone()">📱 Телефон</button>
-        </div>
-        <div id="user-rating" style="margin-top:15px; font-weight:bold; color:var(--warning);">⭐ 0.0 (0 отзывов)</div>
-        <div id="user-phone" style="margin-top:5px; color:var(--gray); font-size:14px;"></div>
-        <div id="user-email" style="margin-top:5px; color:var(--gray); font-size:12px;"></div>
+        <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block;" onclick="changeName()">Сменить имя</button>
+        <div id="u-rating" style="margin-top:15px; font-weight:bold; color:#ff9500; font-size:18px;">⭐ 0.0 (0 отзывов)</div>
     </div>
     <hr style="margin:25px 0; opacity:0.1;">
     <h3>Мои товары</h3>
     <div id="my-ads-container"></div>
-    <button class="btn btn-red" style="margin-top:40px;" onclick="signOut()">Выйти</button>
+    <button class="btn btn-red" style="margin-top:40px;" onclick="logout()">Выйти из аккаунта</button>
 </div>
 
-<!-- POST AD MODAL -->
+<div id="page-admin" class="page">
+    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад</button>
+    <h2>🛡️ Модерация</h2>
+    <h3>Фото профилей</h3>
+    <div id="mod-avas"></div>
+    <h3>Объявления</h3>
+    <div id="mod-ads"></div>
+    <h3>Отзывы</h3>
+    <div id="mod-reviews"></div>
+</div>
+
 <div id="modal-post" class="modal">
     <div class="modal-content">
         <h2>Новое объявление</h2>
         <input type="file" id="post-images" multiple accept="image/*">
-        <input type="text" id="post-title" placeholder="Название товара">
+        <input type="text" id="post-title" placeholder="Название">
         <input type="number" id="post-price" placeholder="Цена (₽)">
         <select id="post-cat">
             <option value="Одежда">Одежда / Обувь</option>
             <option value="Электроника">Электроника</option>
             <option value="Аксессуары">Аксессуары</option>
-            <option value="Дом и сад">Дом и сад</option>
             <option value="Авто">Авто</option>
             <option value="Другое">Другое</option>
         </select>
         <input type="text" id="post-loc" placeholder="Город">
-        <input type="tel" id="post-phone" placeholder="Телефон для связи">
         <textarea id="post-desc" rows="5" placeholder="Описание товара..."></textarea>
         <button class="btn btn-blue" id="sendAdBtn" onclick="submitAd()">Опубликовать</button>
         <button class="btn" onclick="closeModal('modal-post')" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
 
-<!-- CHAT MODAL -->
 <div id="modal-chat" class="modal">
-    <div class="modal-content" style="padding:15px; display:flex; flex-direction:column; max-width:600px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 id="chat-with-name" style="margin:0;">Чат</h3>
-            <button class="btn btn-small btn-red" onclick="closeModal('modal-chat')">✕</button>
+    <div class="modal-content" style="padding:15px; display:flex; flex-direction:column; max-width: 600px; height: 85vh;">
+        <div class="chat-header">
+            <div>
+                <h3 id="chat-with-name" style="margin:0;">Чат</h3>
+                <small id="chat-status" style="color:var(--gray);"></small>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" id="btn-review" style="display:none; padding:8px 15px; font-size:12px; width:auto; background:#ff9500; color:white;" onclick="openReviewModal()">Оставить отзыв</button>
+                <div style="font-size:24px; cursor:pointer; padding: 0 10px;" onclick="toggleDropdown()">⋮</div>
+            </div>
+            <div id="chat-dropdown" class="dropdown">
+                <div class="drop-item" onclick="actionChat('pin')">📌 Закрепить / Открепить</div>
+                <div class="drop-item" onclick="actionChat('mute')">🔕 Вкл/Выкл уведомления</div>
+                <div class="drop-item" onclick="actionChat('block')" style="color:var(--red);">🚫 Заблокировать / Разблокировать</div>
+                <div class="drop-item" onclick="actionChat('delete')" style="color:var(--red);">🗑️ Удалить чат навсегда</div>
+            </div>
         </div>
         <div id="chat-messages" class="chat-area"></div>
         <div style="display:flex; gap:8px; margin-top:15px;">
-            <input type="text" id="msg-input" placeholder="Введите сообщение... (@ник для ответа админу)" style="margin:0; flex:1;" onkeypress="if(event.key==='Enter')sendChatMessage()">
-            <button class="btn btn-blue" style="width:60px; margin:0;" onclick="sendChatMessage()">➤</button>
+            <input type="text" id="msg-input" placeholder="Сообщение..." style="margin:0; flex:1;">
+            <button id="msg-send-btn" class="btn btn-blue" style="width:60px; margin:0;" onclick="sendChatMessage()">➤</button>
         </div>
-        <button id="review-btn" class="btn btn-green" style="margin-top:10px; display:none;" onclick="openReviewModal()">⭐ Оставить отзыв</button>
+        <button class="btn btn-red" onclick="closeModal('modal-chat')" style="margin-top:10px; padding: 10px;">Закрыть</button>
     </div>
 </div>
 
-<!-- REVIEW MODAL -->
 <div id="modal-review" class="modal">
     <div class="modal-content">
-        <h2 style="text-align:center;">Оставить отзыв</h2>
-        <p style="text-align:center; color:var(--gray);">Оценка пользователя</p>
+        <h2>Оцените сделку</h2>
         <div class="stars" id="review-stars">
-            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+            <span onclick="setStar(1)">★</span><span onclick="setStar(2)">★</span><span onclick="setStar(3)">★</span><span onclick="setStar(4)">★</span><span onclick="setStar(5)">★</span>
         </div>
-        <input type="hidden" id="review-rating" value="0">
-        
-        <label style="font-weight:bold; margin-top:15px; display:block;">Статус сделки:</label>
         <select id="review-status">
-            <option value="">Выберите...</option>
-            <option value="Сделка состоялась">✅ Сделка состоялась</option>
-            <option value="Не состоялась">❌ Не состоялась</option>
-            <option value="Не договорились">🤷 Не договорились</option>
-            <option value="Мошенничество">⚠️ Мошенничество</option>
-            <option value="Обман">⚠️ Обман</option>
-            <option value="Товар не соответствует">⚠️ Товар не соответствует</option>
+            <option value="Сделка состоялась">Сделка состоялась</option>
+            <option value="Не договорились">Не договорились</option>
+            <option value="Продавец не пришел">Продавец не пришел</option>
+            <option value="Мошенничество">Обман / Мошенничество</option>
+            <option value="Товар с дефектом">Товар с дефектом</option>
         </select>
-        
-        <label style="font-weight:bold; margin-top:15px; display:block;">Описание:</label>
-        <textarea id="review-desc" rows="4" placeholder="Подробно опишите ситуацию..."></textarea>
-        
-        <button class="btn btn-blue" onclick="submitReview()">Отправить на модерацию</button>
+        <textarea id="review-text" rows="4" placeholder="Напишите подробнее (например: разбитый экран, отличный продавец)..."></textarea>
+        <button class="btn btn-blue" onclick="submitReview()">Отправить отзыв</button>
         <button class="btn" onclick="closeModal('modal-review')" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
 
-<!-- EDIT AD MODAL -->
-<div id="modal-edit-ad" class="modal">
-    <div class="modal-content">
-        <h2>Редактировать объявление</h2>
-        <div class="edit-ad-form">
-            <input type="hidden" id="edit-ad-id">
-            <label>Фотографии:</label>
-            <input type="file" id="edit-images" multiple accept="image/*">
-            <div id="edit-current-images" style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0;"></div>
-            <input type="text" id="edit-title" placeholder="Название товара">
-            <input type="number" id="edit-price" placeholder="Цена (₽)">
-            <select id="edit-cat">
-                <option value="Одежда">Одежда / Обувь</option>
-                <option value="Электроника">Электроника</option>
-                <option value="Аксессуары">Аксессуары</option>
-                <option value="Дом и сад">Дом и сад</option>
-                <option value="Авто">Авто</option>
-                <option value="Другое">Другое</option>
-            </select>
-            <input type="text" id="edit-loc" placeholder="Город">
-            <input type="tel" id="edit-phone" placeholder="Телефон для связи">
-            <textarea id="edit-desc" rows="5" placeholder="Описание товара..."></textarea>
-            <button class="btn btn-blue" onclick="saveEditedAd()">Сохранить изменения</button>
-            <button class="btn" onclick="closeModal('modal-edit-ad')" style="margin-top:10px;">Отмена</button>
-        </div>
-    </div>
-</div>
-
-<!-- CHAT MENU POPUP -->
-<div id="chat-menu-popup" class="chat-menu-popup">
-    <button onclick="toggleNotifications()">🔔 Уведомления</button>
-    <button onclick="toggleBlock()" id="btn-block">🚫 Заблокировать</button>
-    <button onclick="deleteChat()">🗑️ Удалить чат</button>
-    <button onclick="togglePin()">📌 Закрепить</button>
-</div>
-
 <nav class="bottom-nav">
-    <div class="nav-item active" onclick="showPage('home')"><i>🏠</i>Главная<i class="nav-badge" id="badge-home"></i></div>
-    <div class="nav-item" onclick="checkAuthAndOpen('modal-post')"><i>➕</i>Выложить</div>
-    <div class="nav-item" onclick="showPage('chats')"><i>💬</i>Чаты<i class="nav-badge" id="badge-chats">0</i></div>
-    <div class="nav-item" onclick="showPage('profile')"><i>👤</i>Профиль</div>
+    <div class="nav-item active" onclick="showPage('home')"><i>🏠</i>Главная</div>
+    <div class="nav-item" onclick="requireAuth(() => openModal('modal-post'))"><i>➕</i>Выложить</div>
+    <div class="nav-item" onclick="requireAuth(() => showPage('chats'))"><div id="chat-badge" class="badge"></div><i>💬</i>Чаты</div>
+    <div class="nav-item" onclick="requireAuth(() => showPage('profile'))"><i>👤</i>Профиль</div>
 </nav>
 
 <script>
-    // ==================== КОНФИГУРАЦИЯ ====================
+    // --- НАСТРОЙКИ (ВСТАВЬ СВОИ) ---
     const firebaseConfig = {
         apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
         authDomain: "yavito-7930e.firebaseapp.com",
@@ -318,867 +248,514 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Включаем персистентность авторизации
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-    // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
     let user = null;
     let userData = null;
-    let currentChatId = null;
-    let currentChatPartner = null;
     let rawAds = [];
-    let selectedReviewRating = 0;
-    let activeChatMenu = null;
-    let authChecked = false;
+    
+    // Переменные чата
+    let currentChatId = null;
+    let isSupportMode = false;
+    let chatTargetUid = null;
+    let currentChatBlocked = false;
+    let currentChatMsgCount = 0;
+    
+    // Для отзывов
+    let selectedStars = 0;
+    
+    // Карта имен поддержки (для админа)
+    let supportNameMap = {};
 
-    // ==================== АВТОРИЗАЦИЯ ====================
+    // --- АВТОРИЗАЦИЯ И ИНИЦИАЛИЗАЦИЯ ---
     auth.onAuthStateChanged(async u => {
         if(u) {
             user = u;
-            await loadUserData();
-            // Скрываем модальное окно входа ТОЛЬКО после успешной загрузки данных
-            document.getElementById('auth-warning').classList.remove('active');
-            loadFeed();
-            loadChatsList();
-            loadUnreadCount();
-            
+            document.getElementById('auth-btn').style.display = 'none';
+            await checkUserDb();
             if(u.email === ADMIN_ID) {
                 document.getElementById('admin-zone').style.display = 'block';
-                document.getElementById('admin-support-chats').style.display = 'block';
-                initAdmin();
-                loadAdminSupportTickets();
-                loadReviewsForModeration();
+                initAdminMod();
             }
+            loadChatsList();
         } else {
-            // Показываем окно входа только если пользователь не авторизован
-            document.getElementById('auth-warning').classList.add('active');
-            user = null;
-            userData = null;
+            user = null; userData = null;
+            document.getElementById('auth-btn').style.display = 'block';
         }
-        authChecked = true;
+        loadFeed(); // Ленту грузим для всех
     });
 
-    function signIn() {
-        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function logout() { auth.signOut().then(() => { location.reload(); }); }
+    
+    function requireAuth(action) {
+        if(!user) {
+            if(confirm("Для этого действия нужно войти в аккаунт. Войти сейчас?")) login();
+            return;
+        }
+        action();
     }
 
-    function signOut() {
-        auth.signOut();
-        location.reload();
-    }
-
-    async function loadUserData() {
-        const doc = await db.collection('users').doc(user.uid).get();
+    async function checkUserDb() {
+        const ref = db.collection('users').doc(user.uid);
+        const doc = await ref.get();
         if(!doc.exists) {
-            await db.collection('users').doc(user.uid).set({
+            await ref.set({
                 name: user.displayName || 'Пользователь',
                 avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                rating: 0,
-                reviewCount: 0,
-                phone: '',
-                email: user.email,
-                joinedAt: new Date()
+                ratingSum: 0, reviewCount: 0
             });
-            userData = { name: user.displayName, avatar: '', rating: 0, reviewCount: 0, email: user.email };
-        } else {
-            userData = doc.data();
         }
-        
-        db.collection('users').doc(user.uid).onSnapshot(s => {
+        ref.onSnapshot(s => {
             userData = s.data();
-            document.getElementById('u-name').innerText = userData.name || 'Пользователь';
-            document.getElementById('u-avatar').src = userData.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-            document.getElementById('ava-status').innerText = userData.pendingAva ? "⌛ Фото на проверке" : "";
-            document.getElementById('user-rating').innerText = `⭐ ${userData.rating?.toFixed(1) || 0} (${userData.reviewCount || 0} отзывов)`;
-            document.getElementById('user-phone').innerText = userData.phone || '';
-            document.getElementById('user-email').innerText = userData.email || user.email;
+            document.getElementById('u-name').innerText = userData.name;
+            document.getElementById('u-avatar').src = userData.avatar;
+            document.getElementById('ava-status').innerText = userData.pendingAva ? "⌛ Фото на модерации" : "";
+            
+            let rCount = userData.reviewCount || 0;
+            let rAvg = rCount > 0 ? (userData.ratingSum / rCount).toFixed(1) : "0.0";
+            document.getElementById('u-rating').innerText = `⭐ ${rAvg} (${rCount} отзывов)`;
         });
     }
 
-    function checkAuthAndOpen(modalId) {
-        if(!user) {
-            alert('Сначала войдите в аккаунт!');
-            document.getElementById('auth-warning').classList.add('active');
-            return;
-        }
-        openModal(modalId);
-    }
-
-    // ==================== ТЕМЫ ====================
     function toggleTheme() {
         document.body.classList.toggle('dark');
         localStorage.setItem('yv_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
     if(localStorage.getItem('yv_theme') === 'dark') document.body.classList.add('dark');
 
-    // ==================== ЗАГРУЗКА ФОТО ====================
     async function upImg(file) {
-        if(!file) return '';
-        let fd = new FormData(); 
-        fd.append("image", file);
+        let fd = new FormData(); fd.append("image", file);
         let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
-        let d = await r.json(); 
-        return d.data?.url || '';
+        let d = await r.json(); return d.data.url;
     }
 
-    // ==================== ОБЪЯВЛЕНИЯ ====================
+    // --- ОБЪЯВЛЕНИЯ ---
     async function submitAd() {
-        if(!user) { alert('Войдите в аккаунт!'); return; }
-        
         const btn = document.getElementById('sendAdBtn');
-        btn.disabled = true; 
-        btn.innerText = "Загрузка...";
+        btn.disabled = true; btn.innerText = "Загрузка фото...";
         
         const files = document.getElementById('post-images').files;
+        if(files.length === 0) { alert("Добавьте хотя бы одно фото!"); btn.disabled = false; btn.innerText = "Опубликовать"; return; }
         let urls = [];
-        for(let f of files) {
-            const url = await upImg(f);
-            if(url) urls.push(url);
-        }
-
-        if(urls.length === 0) {
-            alert('Добавьте хотя бы одно фото!');
-            btn.disabled = false;
-            btn.innerText = "Опубликовать";
-            return;
-        }
+        for(let f of files) urls.push(await upImg(f));
 
         await db.collection('ads').add({
             title: document.getElementById('post-title').value,
             price: document.getElementById('post-price').value,
             cat: document.getElementById('post-cat').value,
             loc: document.getElementById('post-loc').value,
-            phone: document.getElementById('post-phone').value,
             desc: document.getElementById('post-desc').value,
             photos: urls,
             authorId: user.uid,
-            authorName: userData.name,
-            authorAvatar: userData.avatar,
             status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            views: 0
+            time: new Date()
         });
-        
-        alert("✅ Объявление отправлено на модерацию!");
-        closeModal('modal-post');
-        // Очищаем форму
-        document.getElementById('post-images').value = '';
-        document.getElementById('post-title').value = '';
-        document.getElementById('post-price').value = '';
-        document.getElementById('post-desc').value = '';
+        alert("Объявление отправлено на модерацию!");
+        location.reload();
     }
 
     function loadFeed() {
-        // Загружаем ВСЕ активные объявления
-        db.collection('ads').where('status', '==', 'active')
-          .orderBy('createdAt', 'desc')
-          .onSnapshot(snap => {
+        db.collection('ads').where('status','==','active').onSnapshot(snap => {
             rawAds = [];
-            snap.forEach(d => {
-                const data = d.data();
-                rawAds.push({ id: d.id, ...data });
-            });
-            renderAds(rawAds);
-        }, error => {
-            console.error('Ошибка загрузки объявлений:', error);
-            document.getElementById('ads-grid').innerHTML = '<p style="color:var(--red);">Ошибка загрузки. Проверьте консоль.</p>';
+            snap.forEach(d => rawAds.push({id: d.id, ...d.data()}));
+            renderAds(rawAds.sort(() => Math.random() - 0.5));
         });
     }
 
     function renderAds(arr) {
         let h = '';
         arr.forEach(ad => {
-            const img = ad.photos && ad.photos.length > 0 ? ad.photos[0] : 'https://via.placeholder.com/300x200?text=Нет+фото';
             h += `
             <div class="card" onclick="openAd('${ad.id}')">
-                <img src="${img}" onerror="this.src='https://via.placeholder.com/300x200?text=Ошибка'">
+                <img src="${ad.photos[0] || ''}">
                 <div class="card-body">
                     <div class="price">${ad.price} ₽</div>
-                    <div style="font-size:14px; margin:4px 0; height:38px; overflow:hidden;">${ad.title || 'Без названия'}</div>
-                    <div style="font-size:12px; color:var(--gray);">${ad.loc || ''}</div>
+                    <div style="font-size:14px; margin:4px 0; height:38px; overflow:hidden;">${ad.title}</div>
+                    <div style="font-size:12px; color:var(--gray);">${ad.loc}</div>
                 </div>
             </div>`;
         });
-        document.getElementById('ads-grid').innerHTML = h || '<p style="grid-column:1/-1;text-align:center;color:var(--gray);padding:40px;">Ничего не найдено</p>';
-        document.getElementById('feed-title').innerText = `Рекомендации (${arr.length})`;
+        document.getElementById('ads-grid').innerHTML = h || '<p>Ничего не найдено</p>';
     }
 
-    // ==================== ПРОСМОТР ОБЪЯВЛЕНИЯ ====================
+    function runSearch() {
+        const q = document.getElementById('mainSearch').value.toLowerCase();
+        const filtered = rawAds.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
+        document.getElementById('feed-title').innerText = q ? `Результаты: ${q}` : "Рекомендации";
+        renderAds(filtered);
+    }
+
     async function openAd(id) {
-        try {
-            const d = await db.collection('ads').doc(id).get();
-            if(!d.exists) { alert('Объявление не найдено'); showPage('home'); return; }
-            
-            const ad = d.data();
-            showPage('view');
-            
-            let imgs = '';
-            if(ad.photos && ad.photos.length > 0) {
-                imgs = ad.photos.map(p => `<img src="${p}" onerror="this.style.display='none'">`).join('');
-            } else {
-                imgs = '<div style="height:350px;display:grid;place-items:center;color:#fff;">Нет фотографий</div>';
-            }
-            
-            document.getElementById('ad-full-content').innerHTML = `
-                <div class="gallery-main">${imgs}</div>
-                <div class="ad-details">
-                    <h1 style="margin:0; font-size:28px;">${ad.price} ₽</h1>
-                    <h2 style="font-weight:normal; margin:10px 0; font-size:22px;">${ad.title || 'Без названия'}</h2>
-                    <p style="color:var(--gray); margin-bottom:20px;">${ad.loc || ''} • ${ad.cat || ''}</p>
-                    <div style="white-space:pre-wrap; line-height:1.6; background:var(--bg); padding:15px; border-radius:12px;">${ad.desc || 'Нет описания'}</div>
-                    
-                    ${ad.phone ? `<p style="margin-top:15px;"><b>📞 Телефон:</b> ${ad.phone}</p>` : ''}
-                    
-                    <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px;">
-                        <img src="${ad.authorAvatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" 
-                             style="width:50px; height:50px; border-radius:50%; object-fit:cover;" 
-                             onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-                        <div>
-                            <b>${ad.authorName || 'Продавец'}</b><br>
-                            <small style="color:var(--gray);">Продавец</small>
-                        </div>
-                    </div>
-                    
-                    ${ad.authorId !== user.uid ? 
-                        `<button class="btn btn-blue" style="margin-top:15px;" onclick="startNewChat('${ad.authorId}', '${(ad.authorName || 'Продавец').replace(/'/g, "\\'")}')">💬 Написать продавцу</button>` 
-                        : `<button class="btn btn-green" style="margin-top:15px;" onclick="editMyAd('${ad.id}')">✏️ Редактировать объявление</button>`}
+        const d = await db.collection('ads').doc(id).get();
+        const ad = d.data();
+        
+        // Получаем свежие данные автора
+        const authorDoc = await db.collection('users').doc(ad.authorId).get();
+        const authorData = authorDoc.exists ? authorDoc.data() : {name: "Неизвестен", avatar: "", reviewCount: 0};
+        let rAvg = authorData.reviewCount > 0 ? (authorData.ratingSum / authorData.reviewCount).toFixed(1) : "0.0";
+
+        showPage('view');
+        let imgs = ad.photos.map(p => `<img src="${p}">`).join('');
+        document.getElementById('ad-full-content').innerHTML = `
+            <div class="gallery-main">${imgs}</div>
+            <div class="ad-details">
+                <h1 style="margin:0;">${ad.price} ₽</h1>
+                <h2 style="font-weight:normal; margin:10px 0;">${ad.title}</h2>
+                <p style="color:var(--gray); margin-bottom:20px;">${ad.loc} • ${ad.cat}</p>
+                <div style="white-space:pre-wrap; line-height:1.5;">${ad.desc}</div>
+                <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px;">
+                    <img src="${authorData.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;">
+                    <div><b>${authorData.name}</b><br><small style="color:#ff9500; font-weight:bold;">⭐ ${rAvg} (${authorData.reviewCount || 0} отз.)</small></div>
                 </div>
-            `;
-            
-            db.collection('ads').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
-            
-        } catch(e) {
-            console.error('Ошибка открытия объявления:', e);
-            alert('Ошибка загрузки объявления: ' + e.message);
-            showPage('home');
-        }
+                <button class="btn btn-blue" style="margin-top:15px;" onclick="requireAuth(() => startNewChat('${ad.authorId}', '${authorData.name}'))">Написать продавцу</button>
+            </div>
+        `;
     }
 
-    // ==================== РЕДАКТИРОВАНИЕ ОБЪЯВЛЕНИЯ ====================
-    async function editMyAd(adId) {
-        const doc = await db.collection('ads').doc(adId).get();
-        if(!doc.exists) { alert('Объявление не найдено'); return; }
-        
-        const ad = doc.data();
-        
-        document.getElementById('edit-ad-id').value = adId;
-        document.getElementById('edit-title').value = ad.title || '';
-        document.getElementById('edit-price').value = ad.price || '';
-        document.getElementById('edit-cat').value = ad.cat || 'Другое';
-        document.getElementById('edit-loc').value = ad.loc || '';
-        document.getElementById('edit-phone').value = ad.phone || '';
-        document.getElementById('edit-desc').value = ad.desc || '';
-        
-        // Показываем текущие фото
-        let currentImgs = '';
-        if(ad.photos && ad.photos.length > 0) {
-            currentImgs = ad.photos.map(p => `<img src="${p}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">`).join('');
-        }
-        document.getElementById('edit-current-images').innerHTML = currentImgs || 'Нет фото';
-        
-        openModal('modal-edit-ad');
-    }
-
-    async function saveEditedAd() {
-        const adId = document.getElementById('edit-ad-id').value;
-        if(!adId) { alert('Ошибка: нет ID объявления'); return; }
-        
-        const btn = event.target;
-        btn.disabled = true;
-        btn.innerText = 'Сохранение...';
-        
-        // Загружаем новые фото если есть
-        const files = document.getElementById('edit-images').files;
-        let newUrls = [];
-        for(let f of files) {
-            const url = await upImg(f);
-            if(url) newUrls.push(url);
-        }
-        
-        // Получаем текущие фото
-        const doc = await db.collection('ads').doc(adId).get();
-        const currentPhotos = doc.data().photos || [];
-        
-        // Объединяем старые и новые фото
-        const allPhotos = [...currentPhotos, ...newUrls];
-        
-        await db.collection('ads').doc(adId).update({
-            title: document.getElementById('edit-title').value,
-            price: document.getElementById('edit-price').value,
-            cat: document.getElementById('edit-cat').value,
-            loc: document.getElementById('edit-loc').value,
-            phone: document.getElementById('edit-phone').value,
-            desc: document.getElementById('edit-desc').value,
-            photos: allPhotos,
-            status: 'pending', // Отправляем на повторную модерацию
-            editedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        alert('✅ Изменения сохранены! Объявление отправлено на повторную модерацию.');
-        closeModal('modal-edit-ad');
-        loadProfile();
-    }
-
-    // ==================== ЧАТЫ ====================
-    function openSupport() {
-        startNewChat("ADMIN_SUPPORT", "Служба поддержки");
-    }
-
-    async function startNewChat(otherId, otherName) {
-        if(!user) { alert('Войдите в аккаунт!'); return; }
-        if(otherId === user.uid) { alert("Это ваше объявление!"); return; }
-        
-        let isSupport = otherId === "ADMIN_SUPPORT";
-        // Важно: chatId должен быть одинаковым для обоих участников
-        let chatId = isSupport ? `support_${user.uid}` : [user.uid, otherId].sort().join("_");
-        
-        // Определяем name1 и name2 правильно - name1 всегда первый пользователь, name2 - второй
-        let uid1, uid2, name1, name2;
-        if(isSupport) {
-            uid1 = user.uid;
-            uid2 = "ADMIN";
-            name1 = userData.name || "Пользователь";
-            name2 = "Служба поддержки";
-        } else {
-            // Сортируем по UID чтобы chatId был одинаковым
-            const sorted = [user.uid, otherId].sort();
-            uid1 = sorted[0];
-            uid2 = sorted[1];
-            // name1 соответствует uid1, name2 соответствует uid2
-            name1 = uid1 === user.uid ? (userData.name || "Пользователь") : otherName;
-            name2 = uid2 === user.uid ? (userData.name || "Пользователь") : otherName;
-        }
-        
-        await db.collection('chat_list').doc(chatId).set({
-            participants: isSupport ? [user.uid, "ADMIN"] : [user.uid, otherId],
-            uid1: uid1,
-            uid2: uid2,
-            name1: name1,
-            name2: name2,
-            lastUpdate: new Date(),
-            isSupport: isSupport,
-            pinned: false,
-            muted: false,
-            blocked: false,
-            messageCount: 0
-        }, {merge: true});
-
-        currentChatPartner = { id: otherId, name: otherName };
-        openChatWindow(chatId, otherName);
-    }
-
-    function openChatWindow(chatId, title) {
-        currentChatId = chatId;
-        document.getElementById('chat-with-name').innerText = title;
-        openModal('modal-chat');
-        
-        // Проверяем количество сообщений для кнопки отзыва
-        db.collection('chats').doc(chatId).collection('messages').get().then(snap => {
-            const btn = document.getElementById('review-btn');
-            if(snap.size >= 10 && !chatId.includes('support')) {
-                btn.style.display = 'block';
-            } else {
-                btn.style.display = 'none';
-            }
-        });
-        
-        // Слушаем сообщения
-        db.collection('chats').doc(chatId).collection('messages').orderBy('time','asc')
-          .onSnapshot(snap => {
-            let h = '';
-            snap.forEach(m => {
-                const d = m.data();
-                const isMe = d.senderId === user.uid;
-                const senderName = d.senderName || (isMe ? 'Вы' : 'Собеседник');
-                h += `
-                <div class="m ${isMe ? 'my' : 'other'}">
-                    ${!isMe && chatId.includes('support') ? `<div class="m-sender">${senderName}</div>` : ''}
-                    ${d.text}
-                </div>`;
-            });
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = h;
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    async function sendChatMessage() {
-        if(!user) { alert('Войдите в аккаунт!'); return; }
-        
-        const inp = document.getElementById('msg-input');
-        let text = inp.value.trim();
-        if(!text) return;
-        
-        // Проверка на блокировку
-        const chatDoc = await db.collection('chat_list').doc(currentChatId).get();
-        if(chatDoc.exists && chatDoc.data().blocked) {
-            alert('Чат заблокирован');
-            return;
-        }
-        
-        // Обработка @ник для админа
-        if(currentChatId.includes('support') && text.startsWith('@')) {
-            const match = text.match(/@(\S+)\s+(.+)/);
-            if(match) {
-                const targetName = match[1];
-                const message = match[2];
-                // Находим чат по имени пользователя
-                const chats = await db.collection('chat_list').where('participants','array-contains','ADMIN').get();
-                let found = false;
-                chats.forEach(doc => {
-                    const d = doc.data();
-                    if(d.name1 === targetName || d.name2 === targetName) {
-                        db.collection('chats').doc(doc.id).collection('messages').add({
-                            text: `📩 Ответ от поддержки: ${message}`,
-                            senderId: 'ADMIN',
-                            senderName: 'Поддержка',
-                            time: new Date()
-                        });
-                        found = true;
-                    }
-                });
-                if(found) {
-                    alert('✅ Ответ отправлен пользователю @' + targetName);
-                } else {
-                    alert('❌ Пользователь @' + targetName + ' не найден');
-                }
-                inp.value = '';
-                return;
-            } else {
-                // Если формат неверный, отправляем как обычное сообщение
-                alert('Формат: @ник сообщение (например: @qqq привет)');
-            }
-        }
-        
-        await db.collection('chats').doc(currentChatId).collection('messages').add({
-            text: text,
-            senderId: user.uid,
-            senderName: userData.name,
-            time: new Date()
-        });
-        
-        // Обновляем метаданные чата
-        await db.collection('chat_list').doc(currentChatId).update({
-            lastUpdate: new Date(),
-            messageCount: firebase.firestore.FieldValue.increment(1)
-        });
-        
-        inp.value = '';
-    }
-
-    function loadChatsList() {
-        if(!user) return;
-        
-        db.collection('chat_list').where('participants','array-contains',user.uid)
-          .orderBy('lastUpdate','desc').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.isSupport) return;
-                
-                // Определяем собеседника - это НЕ текущий пользователь
-                let otherName, otherId;
-                if(d.uid1 === user.uid) {
-                    otherName = d.name2;
-                    otherId = d.uid2;
-                } else {
-                    otherName = d.name1;
-                    otherId = d.uid1;
-                }
-                
-                const pinnedClass = d.pinned ? 'pinned' : '';
-                const mutedClass = d.muted ? 'muted' : '';
-                
-                h += `
-                <div class="chat-list-item ${pinnedClass} ${mutedClass}" data-chatid="${doc.id}">
-                    <div class="chat-avatar" onclick="openChatWindow('${doc.id}', '${otherName.replace(/'/g, "\\'")}')">👤</div>
-                    <div style="flex:1;" onclick="openChatWindow('${doc.id}', '${otherName.replace(/'/g, "\\'")}')">
-                        <b>${otherName}</b>
-                        ${d.pinned ? '<span style="color:var(--blue);font-size:11px;"> 📌 Закреплён</span>' : ''}
-                        ${d.muted ? '<span style="color:var(--gray);font-size:11px;"> 🔔 Выкл</span>' : ''}
-                    </div>
-                    <span class="chat-menu-btn" onclick="toggleChatMenu(event, '${doc.id}', '${otherId}', '${otherName.replace(/'/g, "\\'")}')">⋮</span>
-                    <div id="menu-${doc.id}" class="chat-menu-popup"></div>
-                </div>`;
-            });
-            document.getElementById('user-chats-list').innerHTML = h || '<p style="color:var(--gray);padding:20px;text-align:center;">Нет диалогов</p>';
-        });
-    }
-
-    function toggleChatMenu(e, chatId, partnerId, partnerName) {
-        e.stopPropagation();
-        
-        document.querySelectorAll('.chat-menu-popup').forEach(m => m.classList.remove('show'));
-        
-        if(activeChatMenu === chatId) {
-            activeChatMenu = null;
-            return;
-        }
-        
-        activeChatMenu = chatId;
-        const menu = document.getElementById(`menu-${chatId}`);
-        currentChatPartner = { id: partnerId, name: partnerName };
-        
-        db.collection('chat_list').doc(chatId).get().then(doc => {
-            const d = doc.data();
-            const isBlocked = d?.blocked || false;
-            
-            menu.innerHTML = `
-                <button onclick="toggleNotifications('${chatId}')">🔔 ${d?.muted ? 'Включить' : 'Выключить'} уведомления</button>
-                <button onclick="toggleBlock('${chatId}')">${isBlocked ? '🔓 Разблокировать' : '🚫 Заблокировать'}</button>
-                <button onclick="deleteChat('${chatId}')">🗑️ Удалить чат</button>
-                <button onclick="togglePin('${chatId}')">📌 ${d?.pinned ? 'Открепить' : 'Закрепить'}</button>
-            `;
-            menu.classList.add('show');
-        });
-    }
-
-    async function toggleNotifications(chatId) {
-        const doc = await db.collection('chat_list').doc(chatId).get();
-        const current = doc.data()?.muted || false;
-        await db.collection('chat_list').doc(chatId).update({ muted: !current });
-        loadChatsList();
-    }
-
-    async function toggleBlock(chatId) {
-        const doc = await db.collection('chat_list').doc(chatId).get();
-        const current = doc.data()?.blocked || false;
-        await db.collection('chat_list').doc(chatId).update({ blocked: !current });
-        loadChatsList();
-        alert(current ? 'Чат разблокирован' : 'Чат заблокирован');
-    }
-
-    async function deleteChat(chatId) {
-        if(!confirm('Удалить чат навсегда у всех участников?')) return;
-        await db.collection('chat_list').doc(chatId).delete();
-        await db.collection('chats').doc(chatId).delete();
-        loadChatsList();
-    }
-
-    async function togglePin(chatId) {
-        const doc = await db.collection('chat_list').doc(chatId).get();
-        const current = doc.data()?.pinned || false;
-        await db.collection('chat_list').doc(chatId).update({ pinned: !current });
-        loadChatsList();
-    }
-
-    function loadAdminSupportTickets() {
-        db.collection('chat_list').where('participants','array-contains','ADMIN')
-          .orderBy('lastUpdate','desc').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                // Показываем имя пользователя, который написал в поддержку
-                const userName = d.uid1 === 'ADMIN' ? d.name2 : d.name1;
-                h += `
-                <div class="chat-list-item" onclick="openChatWindow('${doc.id}', 'Поддержка: ${userName}')" style="border-left:3px solid var(--red);">
-                    <div class="chat-avatar" style="background:var(--red);">🆘</div>
-                    <div><b>От: ${userName}</b></div>
-                </div>`;
-            });
-            document.getElementById('support-tickets-list').innerHTML = h || '<p style="color:var(--gray);">Тикетов нет</p>';
-        });
-    }
-
-    function loadUnreadCount() {
-        if(!user) return;
-        db.collection('chat_list').where('participants','array-contains',user.uid).onSnapshot(snap => {
-            let count = 0;
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(!d.muted && !d.isSupport) count++;
-            });
-            const badge = document.getElementById('badge-chats');
-            badge.innerText = count;
-            badge.classList.toggle('show', count > 0);
-        });
-    }
-
-    // ==================== ОТЗЫВЫ ====================
-    function openReviewModal() {
-        selectedReviewRating = 0;
-        document.querySelectorAll('#review-stars span').forEach(s => s.classList.remove('active'));
-        document.getElementById('review-rating').value = 0;
-        document.getElementById('review-status').value = '';
-        document.getElementById('review-desc').value = '';
-        openModal('modal-review');
-    }
-
-    document.querySelectorAll('#review-stars span').forEach(span => {
-        span.onclick = () => {
-            selectedReviewRating = parseInt(span.dataset.val);
-            document.getElementById('review-rating').value = selectedReviewRating;
-            document.querySelectorAll('#review-stars span').forEach((s, i) => {
-                s.classList.toggle('active', i < selectedReviewRating);
-            });
-        };
-    });
-
-    async function submitReview() {
-        if(!user) { alert('Войдите в аккаунт!'); return; }
-        if(selectedReviewRating === 0) { alert('Выберите оценку!'); return; }
-        
-        const status = document.getElementById('review-status').value;
-        const desc = document.getElementById('review-desc').value;
-        
-        if(!currentChatPartner) { alert('Ошибка: неизвестен получатель отзыва'); return; }
-        
-        await db.collection('reviews').add({
-            fromUid: user.uid,
-            fromName: userData.name,
-            toUid: currentChatPartner.id,
-            toName: currentChatPartner.name,
-            rating: selectedReviewRating,
-            status: status,
-            description: desc,
-            chatId: currentChatId,
-            status_mod: 'pending',
-            createdAt: new Date()
-        });
-        
-        alert('✅ Отзыв отправлен на модерацию!');
-        closeModal('modal-review');
-    }
-
-    function loadReviewsForModeration() {
-        db.collection('reviews').where('status_mod','==','pending').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const r = doc.data();
-                const stars = '★'.repeat(r.rating) + '☆'.repeat(5-r.rating);
-                h += `
-                <div class="mod-card">
-                    <div style="color:var(--warning);font-size:20px;">${stars}</div>
-                    <b>От:</b> ${r.fromName} → <b>Кому:</b> ${r.toName}<br>
-                    <b>Статус:</b> ${r.status}<br>
-                    <b>Описание:</b> ${r.description}<br>
-                    <div style="display:flex;gap:10px;margin-top:10px;">
-                        <button class="btn btn-green btn-small" onclick="approveReview('${doc.id}')">✅ Одобрить</button>
-                        <button class="btn btn-red btn-small" onclick="rejectReview('${doc.id}')">❌ Отклонить</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('reviews-list').innerHTML = h || '<p>Нет отзывов на модерации</p>';
-        });
-    }
-
-    async function approveReview(reviewId) {
-        const doc = await db.collection('reviews').doc(reviewId).get();
-        const r = doc.data();
-        
-        const userDoc = await db.collection('users').doc(r.toUid).get();
-        const u = userDoc.data();
-        const newCount = (u.reviewCount || 0) + 1;
-        const newRating = ((u.rating || 0) * (u.reviewCount || 0) + r.rating) / newCount;
-        
-        await db.collection('users').doc(r.toUid).update({
-            rating: newRating,
-            reviewCount: newCount
-        });
-        
-        await db.collection('reviews').doc(reviewId).update({ status_mod: 'approved' });
-        alert('✅ Отзыв одобрен! Рейтинг обновлён.');
-    }
-
-    async function rejectReview(reviewId) {
-        await db.collection('reviews').doc(reviewId).update({ status_mod: 'rejected' });
-        alert('❌ Отзыв отклонён');
-    }
-
-    // ==================== ПРОФИЛЬ ====================
+    // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
     async function uploadNewAvatar(input) {
-        if(!user) return;
+        if(input.files.length === 0) return;
         const url = await upImg(input.files[0]);
-        if(!url) return;
-        await db.collection('users').doc(user.uid).update({ pendingAva: url });
-        alert("✅ Фото отправлено модератору!");
-        input.value = '';
+        await db.collection('users').doc(user.uid).update({pendingAva: url});
+        alert("Фото отправлено модератору на проверку!");
     }
 
-    function loadProfile() {
+    function changeName() { 
+        let n = prompt("Введите новое имя:"); 
+        if(n && n.trim().length > 0) db.collection('users').doc(user.uid).update({name: n.trim()}); 
+    }
+
+    function loadProfileAds() {
         if(!user) return;
         db.collection('ads').where('authorId','==',user.uid).onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
                 const ad = doc.data();
-                let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Удалено');
-                let clr = ad.status === 'active' ? 'var(--green)' : (ad.status === 'pending' ? 'var(--warning)' : 'var(--red)');
+                let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Отклонено');
+                let clr = ad.status === 'active' ? 'var(--green)' : (ad.status === 'pending' ? '#ff9500' : 'red');
                 h += `
-                <div class="mod-card" style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="display:flex;gap:10px;align-items:center;flex:1;" onclick="openAd('${doc.id}')">
-                        <img src="${ad.photos?.[0] || ''}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" onerror="this.src='https://via.placeholder.com/50'">
+                <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
                         <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
                     </div>
-                    ${ad.status === 'active' || ad.status === 'pending' ? `<button class="btn btn-green btn-small" onclick="editMyAd('${doc.id}')" style="margin-right:5px;">✏️</button>` : ''}
-                    <button class="btn btn-red btn-small" onclick="deleteMyAd('${doc.id}')">🗑️</button>
+                    <button class="btn btn-red" style="width:40px; padding:8px;" onclick="if(confirm('Удалить?')) db.collection('ads').doc('${doc.id}').delete();">🗑️</button>
                 </div>`;
             });
-            document.getElementById('my-ads-container').innerHTML = h || '<p style="color:var(--gray);text-align:center;">Нет товаров</p>';
+            document.getElementById('my-ads-container').innerHTML = h || '<p>У вас пока нет объявлений</p>';
         });
     }
 
-    async function deleteMyAd(id) { 
-        if(!confirm('Удалить объявление?')) return; 
-        await db.collection('ads').doc(id).update({ status: 'deleted' }); 
-    }
-
-    function changeName() { 
-        let n = prompt("Введите новое имя:", userData.name); 
-        if(n && n.trim()) {
-            db.collection('users').doc(user.uid).update({ name: n.trim() });
-            db.collection('ads').where('authorId','==',user.uid).where('status','==','active').get().then(snap => {
-                snap.forEach(doc => doc.ref.update({ authorName: n.trim() }));
-            });
-            db.collection('chat_list').where('uid1','==',user.uid).get().then(snap => {
-                snap.forEach(doc => doc.ref.update({ name1: n.trim() }));
-            });
-            db.collection('chat_list').where('uid2','==',user.uid).get().then(snap => {
-                snap.forEach(doc => doc.ref.update({ name2: n.trim() }));
+    // --- ЧАТЫ (СИСТЕМА + 3 ТОЧКИ) ---
+    async function startNewChat(otherId, otherName) {
+        if(otherId === user.uid) { alert("Это ваше объявление."); return; }
+        let chatId = [user.uid, otherId].sort().join("_");
+        
+        const chatRef = db.collection('chat_list').doc(chatId);
+        const doc = await chatRef.get();
+        if(!doc.exists) {
+            await chatRef.set({
+                participants: [user.uid, otherId],
+                lastUpdate: new Date(),
+                blocked: false,
+                muted: {}, pinned: {}
             });
         }
+        openChatWindow(chatId, otherName, otherId, false);
     }
 
-    function changePhone() {
-        let p = prompt("Введите телефон:", userData.phone);
-        if(p) db.collection('users').doc(user.uid).update({ phone: p });
-    }
+    function openChatWindow(chatId, title, targetUid, isSupport) {
+        currentChatId = chatId;
+        chatTargetUid = targetUid;
+        isSupportMode = isSupport;
+        document.getElementById('chat-with-name').innerText = title;
+        document.getElementById('btn-review').style.display = 'none';
+        document.getElementById('chat-status').innerText = "";
+        openModal('modal-chat');
+        
+        let msgRef = isSupport 
+            ? db.collection('support').orderBy('time') // Админ видит всё, юзер фильтрует у себя
+            : db.collection('chats').doc(currentChatId).collection('messages').orderBy('time');
 
-    // ==================== МОДЕРАЦИЯ (АДМИН) ====================
-    function initAdmin() {
-        // Объявления на модерации
-        db.collection('ads').where('status','==','pending').onSnapshot(snap => {
-            let h = '<h4>📦 Объявления на проверке:</h4>';
-            snap.forEach(doc => {
-                const ad = doc.data();
-                let imgs = '';
-                if(ad.photos && ad.photos.length > 0) {
-                    imgs = ad.photos.map(p => `<img src="${p}" onerror="this.style.display='none'">`).join('');
-                } else {
-                    imgs = '<p>Нет фото</p>';
+        // Отписываемся от старого чата если был
+        if(window.currentChatListener) window.currentChatListener();
+
+        // Если это обычный чат, проверяем статус (блокировки и тд)
+        if(!isSupport) {
+            db.collection('chat_list').doc(chatId).onSnapshot(s => {
+                if(!s.exists) { closeModal('modal-chat'); alert("Чат удален."); return; }
+                const d = s.data();
+                currentChatBlocked = d.blocked;
+                document.getElementById('msg-input').disabled = currentChatBlocked;
+                document.getElementById('msg-send-btn').disabled = currentChatBlocked;
+                if(currentChatBlocked) document.getElementById('chat-status').innerText = "🚫 Чат заблокирован";
+                else document.getElementById('chat-status').innerText = "";
+            });
+        }
+
+        window.currentChatListener = msgRef.onSnapshot(snap => {
+            let h = '';
+            let count = 0;
+            snap.forEach(m => {
+                const d = m.data();
+                
+                // Фильтрация для поддержки
+                if(isSupportMode) {
+                    if(user.email !== ADMIN_ID) {
+                        // Обычный юзер видит только свои сообщения и ответы админа ему
+                        if(d.uid !== user.uid && d.targetUid !== user.uid) return;
+                    } else {
+                        // Админ пополняет карту имен
+                        if(d.uid) supportNameMap[d.name] = d.uid;
+                    }
                 }
+
+                count++;
+                const isMe = isSupportMode ? (user.email === ADMIN_ID ? d.fromAdmin : d.uid === user.uid) : (d.senderId === user.uid);
+                
+                let nameTag = '';
+                if(isSupportMode && user.email === ADMIN_ID && !isMe) {
+                    nameTag = `<div class="m-name">${d.name}</div>`;
+                }
+
+                h += `<div class="m ${isMe ? 'my' : 'other'}">${nameTag}${d.text}</div>`;
+            });
+            
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = h;
+            box.scrollTop = box.scrollHeight;
+            currentChatMsgCount = count;
+
+            // Логика кнопки "Оставить отзыв" (только в обычных чатах)
+            if(!isSupportMode && count >= 10 && user.email !== ADMIN_ID) {
+                document.getElementById('btn-review').style.display = 'block';
+            }
+        });
+    }
+
+    async function sendChatMessage() {
+        const inp = document.getElementById('msg-input');
+        const text = inp.value.trim();
+        if(!text) return;
+
+        if(isSupportMode) {
+            if(user.email === ADMIN_ID) {
+                // Логика ответа Админа через @Ник
+                let match = text.match(/^@([^\s]+)\s+(.*)$/);
+                if(match) {
+                    let tName = match[1];
+                    let msgText = match[2];
+                    let tUid = supportNameMap[tName];
+                    if(!tUid) { alert("Пользователь с ником " + tName + " не найден в логах поддержки."); return; }
+                    
+                    await db.collection('support').add({
+                        text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
+                    });
+                } else {
+                    alert("Формат ответа: @Ник Ваш текст"); return;
+                }
+            } else {
+                // Юзер пишет в поддержку
+                await db.collection('support').add({
+                    text: text, uid: user.uid, name: userData.name, time: new Date()
+                });
+            }
+        } else {
+            if(currentChatBlocked) return;
+            await db.collection('chats').doc(currentChatId).collection('messages').add({
+                text: text, senderId: user.uid, time: new Date()
+            });
+            await db.collection('chat_list').doc(currentChatId).update({ lastUpdate: new Date() });
+        }
+        inp.value = '';
+    }
+
+    function loadChatsList() {
+        db.collection('chat_list').where('participants', 'array-contains', user.uid)
+          .onSnapshot(async snap => {
+            let chats = [];
+            let hasUnread = false;
+            
+            for(let doc of snap.docs) {
+                let d = doc.data();
+                let otherId = d.participants.find(p => p !== user.uid);
+                // Получаем актуальное имя (можно оптимизировать кешем, но для простоты запросим)
+                let otherDoc = await db.collection('users').doc(otherId).get();
+                let otherName = otherDoc.exists ? otherDoc.data().name : "Неизвестен";
+                let otherAva = otherDoc.exists ? otherDoc.data().avatar : "";
+                
+                let isPinned = d.pinned && d.pinned[user.uid];
+                let isMuted = d.muted && d.muted[user.uid];
+                
+                // Простая эмуляция уведомлений: если чат обновился и не заглушен (в реале нужна проверка кто писал последний)
+                if(!isMuted) hasUnread = true; 
+
+                chats.push({ id: doc.id, otherId, otherName, otherAva, isPinned, isMuted, lastUpdate: d.lastUpdate });
+            }
+
+            // Сортировка: закрепленные сверху, затем по времени
+            chats.sort((a,b) => {
+                if(a.isPinned === b.isPinned) return b.lastUpdate - a.lastUpdate;
+                return a.isPinned ? -1 : 1;
+            });
+
+            document.getElementById('chat-badge').style.display = hasUnread ? 'block' : 'none';
+
+            let h = '';
+            chats.forEach(c => {
+                let pinHtml = c.isPinned ? '📌 ' : '';
+                let muteHtml = c.isMuted ? ' 🔕' : '';
                 h += `
-                <div class="mod-card">
-                    <div class="mod-gallery">${imgs}</div>
-                    <b>${ad.title || 'Без названия'}</b> — ${ad.price} ₽<br>
-                    <small>${(ad.desc || '').substring(0,100)}...</small><br>
-                    <small style="color:var(--gray);">Автор: ${ad.authorName || 'Неизвестно'}</small><br>
-                    <small style="color:var(--gray);">Город: ${ad.loc || 'Не указан'}</small><br>
-                    <div style="display:flex;gap:10px;margin-top:10px;">
-                        <button class="btn btn-green btn-small" onclick="modAd('${doc.id}','active')">✅ Одобрить</button>
-                        <button class="btn btn-red btn-small" onclick="modAd('${doc.id}','rejected')">❌ Удалить</button>
+                <div class="chat-list-item ${c.isPinned ? 'pinned' : ''}" onclick="openChatWindow('${c.id}', '${c.otherName}', '${c.otherId}', false)">
+                    <img class="chat-avatar" src="${c.otherAva}">
+                    <div style="flex:1;">
+                        <b>${pinHtml}${c.otherName}${muteHtml}</b>
                     </div>
                 </div>`;
             });
-            document.getElementById('mod-ads-container').innerHTML = h;
+            document.getElementById('user-chats-list').innerHTML = h || '<p style="color:var(--gray);">Нет диалогов</p>';
         });
+    }
+
+    // Служба поддержки открытие
+    function openSupport() {
+        openChatWindow('support_global', user.email === ADMIN_ID ? 'Панель поддержки (Писать: @Ник текст)' : 'Служба поддержки', null, true);
+    }
+
+    // Меню 3 точек
+    function toggleDropdown() { document.getElementById('chat-dropdown').classList.toggle('show'); }
+    window.onclick = function(e) { if(!e.target.matches('.chat-header div[onclick="toggleDropdown()"]')) { document.getElementById('chat-dropdown').classList.remove('show'); } }
+
+    async function actionChat(type) {
+        if(isSupportMode) { alert("В поддержке это недоступно."); return; }
+        const ref = db.collection('chat_list').doc(currentChatId);
+        if(type === 'delete') {
+            if(confirm("Удалить этот чат у обоих навсегда?")) {
+                await ref.delete(); closeModal('modal-chat');
+            }
+        } else if(type === 'block') {
+            await ref.update({ blocked: !currentChatBlocked });
+        } else if(type === 'pin') {
+            const doc = await ref.get();
+            let pinned = doc.data().pinned || {};
+            pinned[user.uid] = !pinned[user.uid];
+            await ref.update({ pinned });
+        } else if(type === 'mute') {
+            const doc = await ref.get();
+            let muted = doc.data().muted || {};
+            muted[user.uid] = !muted[user.uid];
+            await ref.update({ muted });
+        }
+        document.getElementById('chat-dropdown').classList.remove('show');
+    }
+
+    // --- ОТЗЫВЫ ---
+    function openReviewModal() { openModal('modal-review'); selectedStars = 0; setStar(0); document.getElementById('review-text').value = ''; }
+    function setStar(n) {
+        selectedStars = n;
+        let spans = document.getElementById('review-stars').getElementsByTagName('span');
+        for(let i=0; i<5; i++) { spans[i].className = i < n ? 'active' : ''; }
+    }
+    async function submitReview() {
+        if(selectedStars === 0) { alert("Выберите оценку!"); return; }
+        const text = document.getElementById('review-text').value;
+        const status = document.getElementById('review-status').value;
         
-        // Аватары на модерации
+        await db.collection('reviews').add({
+            fromUid: user.uid, fromName: userData.name,
+            toUid: chatTargetUid, stars: selectedStars, dealStatus: status,
+            text: text, status: 'pending', time: new Date()
+        });
+        alert("Отзыв отправлен на проверку модератору.");
+        closeModal('modal-review');
+    }
+
+    // --- МОДЕРАЦИЯ (АДМИН) ---
+    function initAdminMod() {
+        // Модерация Аватарок
         db.collection('users').where('pendingAva','!=',null).onSnapshot(snap => {
-            let h = '<h4>🖼️ Аватары на проверке:</h4>';
-            let hasPending = false;
+            let h = '';
             snap.forEach(d => {
                 const u = d.data();
                 if(u.pendingAva) {
-                    hasPending = true;
                     h += `
                     <div class="mod-card">
-                        <b>${u.name || 'Пользователь'}</b><br>
-                        <img src="${u.pendingAva}" width="100" style="margin:10px 0;border-radius:50%;" onerror="this.src='https://via.placeholder.com/100'"><br>
-                        <button class="btn btn-green btn-small" onclick="approveAva('${d.id}','${u.pendingAva}')">✅ Одобрить</button>
-                        <button class="btn btn-red btn-small" onclick="rejectAva('${d.id}')">❌ Отклонить</button>
+                        <div>Аватар пользователя <b>${u.name}</b></div>
+                        <img src="${u.pendingAva}" width="100" style="margin:10px 0; border-radius:50%; border:2px solid var(--blue);">
+                        <br>
+                        <button class="btn btn-green" style="width:auto; padding:8px 15px;" onclick="approveAva('${d.id}','${u.pendingAva}')">Одобрить</button>
+                        <button class="btn btn-red" style="width:auto; padding:8px 15px;" onclick="rejectAva('${d.id}')">Отклонить</button>
                     </div>`;
                 }
             });
-            document.getElementById('mod-avatars-container').innerHTML = hasPending ? h : '<p>Нет аватаров на проверке</p>';
+            document.getElementById('mod-avas').innerHTML = h || '<p>Пусто</p>';
+        });
+
+        // Модерация Объявлений (ПОЛНЫЙ ВИД)
+        db.collection('ads').where('status','==','pending').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                h += `
+                <div class="mod-card" style="border: 2px solid #ff9500;">
+                    <b>${ad.title}</b> — ${ad.price} ₽
+                    <p style="color:var(--gray); font-size:12px;">Категория: ${ad.cat} | Город: ${ad.loc}</p>
+                    <div class="mod-gallery">${ad.photos.map(p=>`<img src="${p}">`).join('')}</div>
+                    <div style="background:var(--bg); padding:10px; border-radius:8px; font-size:14px; margin-bottom:10px; white-space:pre-wrap;">${ad.desc}</div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-green" onclick="modAd('${doc.id}','active')">Одобрить объявление</button>
+                        <button class="btn btn-red" onclick="modAd('${doc.id}','rejected')">Удалить</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('mod-ads').innerHTML = h || '<p>Пусто</p>';
+        });
+
+        // Модерация Отзывов
+        db.collection('reviews').where('status','==','pending').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                const r = doc.data();
+                h += `
+                <div class="mod-card">
+                    <b>От: ${r.fromName}</b> ➔ Продавцу: UID ${r.toUid}<br>
+                    <div style="color:#ff9500; font-size:20px;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+                    <b>Статус:</b> ${r.dealStatus}<br>
+                    <b>Текст:</b> ${r.text}<br><br>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-green" onclick="approveReview('${doc.id}', '${r.toUid}', ${r.stars})">Пропустить в профиль</button>
+                        <button class="btn btn-red" onclick="rejectReview('${doc.id}')">Удалить отзыв</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('mod-reviews').innerHTML = h || '<p>Пусто</p>';
         });
     }
 
-    function modAd(id, s) { 
-        db.collection('ads').doc(id).update({ status: s }); 
-    }
-
-    async function approveAva(uid, url) { 
-        await db.collection('users').doc(uid).update({ 
-            avatar: url, 
-            pendingAva: firebase.firestore.FieldValue.delete() 
-        });
-        db.collection('ads').where('authorId','==',uid).get().then(snap => {
-            snap.forEach(doc => doc.ref.update({ authorAvatar: url }));
-        });
-    }
-
-    function rejectAva(uid) {
-        db.collection('users').doc(uid).update({ 
-            pendingAva: firebase.firestore.FieldValue.delete() 
+    function modAd(id, s) { db.collection('ads').doc(id).update({status: s}); }
+    async function approveAva(uid, url) { await db.collection('users').doc(uid).update({avatar: url, pendingAva: firebase.firestore.FieldValue.delete()}); }
+    async function rejectAva(uid) { await db.collection('users').doc(uid).update({pendingAva: firebase.firestore.FieldValue.delete()}); }
+    
+    async function approveReview(revId, targetUid, stars) {
+        await db.collection('reviews').doc(revId).update({status: 'approved'});
+        const uRef = db.collection('users').doc(targetUid);
+        await db.runTransaction(async (t) => {
+            const doc = await t.get(uRef);
+            let rs = (doc.data().ratingSum || 0) + stars;
+            let rc = (doc.data().reviewCount || 0) + 1;
+            t.update(uRef, { ratingSum: rs, reviewCount: rc });
         });
     }
+    function rejectReview(revId) { db.collection('reviews').doc(revId).delete(); }
 
-    // ==================== ПОИСК ====================
-    function runSearch() {
-        const q = document.getElementById('mainSearch').value.toLowerCase().trim();
-        if(q.length < 2) {
-            renderAds(rawAds);
-            document.getElementById('feed-title').innerText = `Рекомендации (${rawAds.length})`;
-            return;
-        }
-        const filtered = rawAds.filter(a => 
-            (a.title||'').toLowerCase().includes(q) || 
-            (a.desc||'').toLowerCase().includes(q) ||
-            (a.loc||'').toLowerCase().includes(q) ||
-            (a.cat||'').toLowerCase().includes(q)
-        );
-        document.getElementById('feed-title').innerText = `🔍 Результаты: ${q} (${filtered.length})`;
-        renderAds(filtered);
-    }
-
-    // ==================== НАВИГАЦИЯ ====================
+    // --- НАВИГАЦИЯ ---
     function showPage(id) {
-        if(!user && id !== 'home') {
-            document.getElementById('auth-warning').classList.add('active');
-            return;
-        }
-        
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById('page-'+id).classList.add('active-page');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
-        const navIndex = {home:0, chats:2, profile:3}[id];
-        if(navIndex !== undefined) {
-            document.querySelectorAll('.nav-item')[navIndex]?.classList.add('active');
-        }
-        
-        if(id === 'profile') loadProfile();
-        if(id === 'chats') loadChatsList();
+        if(id === 'profile') loadProfileAds();
     }
-
-    function openModal(id) { 
-        document.getElementById(id).classList.add('active'); 
-    }
-    
-    function closeModal(id) { 
-        document.getElementById(id).classList.remove('active');
-        if(id === 'modal-chat') {
-            currentChatId = null;
-            currentChatPartner = null;
-            activeChatMenu = null;
-            document.querySelectorAll('.chat-menu-popup').forEach(m => m.classList.remove('show'));
-        }
-    }
-
-    document.addEventListener('click', (e) => {
-        if(!e.target.closest('.chat-menu-btn') && !e.target.closest('.chat-menu-popup')) {
-            document.querySelectorAll('.chat-menu-popup').forEach(m => m.classList.remove('show'));
-            activeChatMenu = null;
-        }
-    });
-
-    // Проверка авторизации при загрузке
-    window.addEventListener('load', () => {
-        const stored = localStorage.getItem('firebase:authUser:yavito-7930e:[DEFAULT]');
-        if(stored && !auth.currentUser) {
-            // Пользователь был авторизован ранее, ждем onAuthStateChanged
-        }
-    });
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 </body>
 </html>
