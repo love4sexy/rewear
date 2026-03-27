@@ -2,64 +2,129 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yavito Clone — Рабочая версия</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YAVITO — Твой маркетплейс</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; margin: 0; }
-        header { background: white; padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-blue { background: #0077ff; color: white; }
-        .btn-green { background: #00cc66; color: white; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 400px; position: relative; }
-        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .admin-panel { background: #fff3cd; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffeeba; display: none; }
-        .status { font-size: 12px; padding: 2px 6px; border-radius: 4px; }
-        .status-pending { background: #eee; }
-        .status-active { background: #d4edda; color: #155724; }
+        :root { --blue: #0077ff; --gray: #f4f4f4; --text: #222; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--gray); margin: 0; color: var(--text); padding-bottom: 70px; }
+        
+        /* Шапка */
+        header { background: white; padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; sticky: top; z-index: 100; }
+        .logo { font-size: 22px; font-weight: 900; color: var(--blue); letter-spacing: -1px; }
+
+        /* Контейнер страниц */
+        .page { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        .active-page { display: block; }
+
+        /* Карточки */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
+        .card img { width: 100%; height: 150px; object-fit: cover; }
+        .card-info { padding: 10px; }
+        .price { font-size: 18px; font-weight: bold; margin: 5px 0; }
+        .title { font-size: 14px; color: #444; height: 34px; overflow: hidden; }
+
+        /* Нижняя навигация */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 60px; z-index: 1000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #888; cursor: pointer; }
+        .nav-item.active { color: var(--blue); }
+        .nav-item span { font-size: 20px; }
+
+        /* Модалки */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 500px; padding: 20px; border-radius: 15px; max-height: 90vh; overflow-y: auto; }
+
+        /* Формы */
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-main { background: var(--blue); color: white; }
+        
+        /* Превью фото */
+        #preview-area { display: flex; gap: 5px; overflow-x: auto; margin: 10px 0; }
+        .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; }
+
+        /* Профиль */
+        .profile-header { text-align: center; padding: 20px 0; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ddd; margin: 0 auto 10px; }
+        .rating { color: #ff9500; font-weight: bold; }
+        
+        /* Админка */
+        .admin-box { background: #fff3cd; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-size: 22px; font-weight: bold; color: #0077ff;">YAVITO</div>
-    <div id="auth-ui">
-        <button class="btn btn-blue" onclick="login()">Войти через Google</button>
-    </div>
+    <div class="logo">YAVITO</div>
+    <div id="user-status" style="font-size: 12px;"></div>
 </header>
 
-<main class="container">
-    <div id="admin-zone" class="admin-panel">
-        <h3>Панель модерации (Видна только вам)</h3>
+<div id="page-ads" class="page active-page">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Рекомендации</h2>
+        <button class="btn-main" style="width:auto; padding:8px 15px;" onclick="openModal('addModal')">+ Подать</button>
+    </div>
+    
+    <div id="admin-zone" class="admin-box" style="display:none;">
+        <b>Модерация:</b>
         <div id="mod-list"></div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Объявления</h2>
-        <button class="btn btn-green" onclick="openModal('addModal')">+ Подать объявление</button>
-    </div>
     <div id="ads-list" class="grid"></div>
-</main>
+</div>
+
+<div id="page-chats" class="page">
+    <h2>Сообщения</h2>
+    <div id="chats-list" style="text-align:center; color:#888; margin-top:50px;">
+        Здесь будут ваши диалоги...
+    </div>
+</div>
+
+<div id="page-profile" class="page">
+    <div id="profile-content">
+        <div class="profile-header">
+            <div class="avatar" id="p-avatar"></div>
+            <h2 id="p-name">Загрузка...</h2>
+            <div class="rating">⭐️ 5.0 · 0 отзывов</div>
+            <div style="color:#888; font-size:14px; margin-top:5px;">На Ювито с <span id="p-date">-</span></div>
+        </div>
+        <hr>
+        <h3>Мои объявления</h3>
+        <div id="my-ads" class="grid"></div>
+        <button class="btn" style="color:red;" onclick="auth.signOut()">Выйти из системы</button>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="showPage('ads', this)"><span>📢</span>Объявления</div>
+    <div class="nav-item" onclick="showPage('chats', this)"><span>💬</span>Чаты</div>
+    <div class="nav-item" onclick="showPage('profile', this)"><span>👤</span>Профиль</div>
+</nav>
 
 <div id="addModal" class="modal">
     <div class="modal-content">
-        <span onclick="closeModal('addModal')" style="float:right; cursor:pointer;">&times;</span>
+        <span onclick="closeModal('addModal')" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
         <h3>Новое объявление</h3>
+        
+        <label style="background:#eee; padding:15px; display:block; text-align:center; border-radius:10px; cursor:pointer;">
+            📸 Добавить фото (можно несколько)
+            <input type="file" id="photo-input" multiple accept="image/*" capture="environment" style="display:none;" onchange="handlePreview(this)">
+        </label>
+        <div id="preview-area"></div>
+
         <input type="text" id="ad-title" placeholder="Название">
         <input type="number" id="ad-price" placeholder="Цена (₽)">
-        <textarea id="ad-desc" placeholder="Описание"></textarea>
-        <button class="btn btn-blue" style="width:100%" onclick="saveAd()">Отправить на проверку</button>
+        <textarea id="ad-desc" rows="4" placeholder="Описание товара..."></textarea>
+        
+        <button class="btn btn-main" id="publish-btn" onclick="saveAd()">Опубликовать</button>
     </div>
 </div>
 
 <script>
-    // ТВОИ НАСТРОЙКИ FIREBASE
+    // КОНФИГ FIREBASE (Твои данные)
     const firebaseConfig = {
         apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
         authDomain: "yavito-7930e.firebaseapp.com",
@@ -68,101 +133,169 @@
         messagingSenderId: "560885508854",
         appId: "1:560885508854:web:f7c22cebdfde2279dedad7"
     };
+    
+    const IMGBB_KEY = 'd3e0d626da4b69b9cadd392fe36efeac'; // Твой ключ
+    const ADMIN_EMAIL = "sobakastalina123@gmail.com";
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
-    // ВСТАВЬ СВОЙ EMAIL ТУТ, чтобы стать админом
-    const ADMIN_EMAIL = "sobakastalina123@gmail.com"; 
 
-    let currentUser = null;
+    let user = null;
 
-    // Вход через Google
+    // --- ЛОГИКА СТРАНИЦ ---
+    function showPage(pageId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById('page-' + pageId).classList.add('active-page');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+        if(pageId === 'profile' && user) loadUserProfile();
+    }
+
+    // --- АВТОРИЗАЦИЯ ---
+    auth.onAuthStateChanged(u => {
+        user = u;
+        if (u) {
+            document.getElementById('user-status').innerText = u.displayName;
+            // Сохраняем дату входа юзера, если его нет в базе
+            db.collection('users').doc(u.uid).set({
+                name: u.displayName,
+                joined: new Date().toLocaleDateString('ru-RU')
+            }, { merge: true });
+            
+            if (u.email === ADMIN_EMAIL) {
+                document.getElementById('admin-zone').style.display = 'block';
+                loadModeration();
+            }
+        } else {
+            login();
+        }
+        loadAds();
+    });
+
     function login() {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider);
     }
 
-    auth.onAuthStateChanged(user => {
-        currentUser = user;
-        if (user) {
-            document.getElementById('auth-ui').innerHTML = `
-                <span>${user.displayName}</span>
-                <button class="btn" onclick="auth.signOut()">Выйти</button>
-            `;
-            if (user.email === ADMIN_EMAIL) {
-                document.getElementById('admin-zone').style.display = 'block';
-                loadModeration();
-            }
-        } else {
-            document.getElementById('auth-ui').innerHTML = `<button class="btn btn-blue" onclick="login()">Войти через Google</button>`;
-            document.getElementById('admin-zone').style.display = 'none';
-        }
-        loadAds();
-    });
-
-    // Сохранение в базу
-    function saveAd() {
-        if (!currentUser) return alert("Сначала войдите!");
-        
-        db.collection("ads").add({
-            title: document.getElementById('ad-title').value,
-            price: document.getElementById('ad-price').value,
-            desc: document.getElementById('ad-desc').value,
-            author: currentUser.displayName,
-            authorEmail: currentUser.email,
-            status: "pending",
-            createdAt: new Date()
-        }).then(() => {
-            alert("Отправлено на модерацию!");
-            closeModal('addModal');
+    // --- РАБОТА С ФОТО (ImgBB) ---
+    function handlePreview(input) {
+        const preview = document.getElementById('preview-area');
+        preview.innerHTML = '';
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML += `<img src="${e.target.result}" class="preview-img">`;
+            };
+            reader.readAsDataURL(file);
         });
     }
 
-    // Загрузка одобренных объявлений
+    async function uploadPhotos() {
+        const files = document.getElementById('photo-input').files;
+        const urls = [];
+        for (let file of files) {
+            let formData = new FormData();
+            formData.append("image", file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+            const data = await res.json();
+            urls.push(data.data.url);
+        }
+        return urls;
+    }
+
+    // --- ОБЪЯВЛЕНИЯ ---
+    async function saveAd() {
+        if (!user) return alert("Войдите!");
+        const btn = document.getElementById('publish-btn');
+        btn.disabled = true;
+        btn.innerText = "Загрузка фото...";
+
+        try {
+            const photos = await uploadPhotos();
+            await db.collection("ads").add({
+                title: document.getElementById('ad-title').value,
+                price: document.getElementById('ad-price').value,
+                desc: document.getElementById('ad-desc').value,
+                photos: photos,
+                author: user.displayName,
+                authorId: user.uid,
+                status: "pending",
+                createdAt: new Date().toLocaleDateString('ru-RU')
+            });
+            alert("Отправлено на проверку!");
+            location.reload();
+        } catch(e) { alert("Ошибка!"); btn.disabled = false; }
+    }
+
     function loadAds() {
         db.collection("ads").where("status", "==", "active").onSnapshot(snap => {
             let html = '';
             snap.forEach(doc => {
                 const ad = doc.data();
                 html += `
-                    <div class="card">
-                        <div style="height:120px; background:#eee; margin-bottom:10px; border-radius:5px;"></div>
-                        <strong>${ad.title}</strong>
-                        <div style="color:#0077ff; font-size:18px;">${ad.price} ₽</div>
-                        <p style="font-size:12px; color:#666;">Продавец: ${ad.author}</p>
+                    <div class="card" onclick="alert('Тут будет чат и полное описание!')">
+                        <img src="${ad.photos[0] || 'https://via.placeholder.com/150'}">
+                        <div class="card-info">
+                            <div class="price">${ad.price} ₽</div>
+                            <div class="title">${ad.title}</div>
+                        </div>
                     </div>
                 `;
             });
-            document.getElementById('ads-list').innerHTML = html || 'Пока нет одобренных товаров.';
+            document.getElementById('ads-list').innerHTML = html || 'Товаров пока нет';
         });
     }
 
-    // Загрузка для админа
+    // --- ПРОФИЛЬ ---
+    async function loadUserProfile() {
+        const uDoc = await db.collection('users').doc(user.uid).get();
+        document.getElementById('p-name').innerText = user.displayName;
+        document.getElementById('p-date').innerText = uDoc.data()?.joined || 'недавно';
+        
+        db.collection('ads').where('authorId', '==', user.uid).onSnapshot(snap => {
+            let html = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                html += `<div class="card" style="opacity: ${ad.status === 'active' ? 1 : 0.5}">
+                    <img src="${ad.photos[0]}">
+                    <div class="card-info"><b>${ad.status === 'pending' ? '[На проверке]' : ''} ${ad.title}</b></div>
+                </div>`;
+            });
+            document.getElementById('my-ads').innerHTML = html || 'У вас нет объявлений';
+        });
+    }
+
+    // --- МОДЕРАЦИЯ ---
     function loadModeration() {
         db.collection("ads").where("status", "==", "pending").onSnapshot(snap => {
             let html = '';
             snap.forEach(doc => {
                 const ad = doc.data();
                 html += `
-                    <div style="background:white; padding:10px; margin-top:10px; border-radius:5px;">
-                        <b>${ad.title}</b> (${ad.price}₽) <br>
-                        <button onclick="approveAd('${doc.id}')" style="color:green">Одобрить</button>
-                        <button onclick="deleteAd('${doc.id}')" style="color:red">Удалить</button>
+                    <div style="background:white; padding:10px; margin-top:5px; border-radius:8px;">
+                        <b>${ad.title}</b> (${ad.price}₽)<br>
+                        <button onclick="updateStatus('${doc.id}', 'active')" style="color:green">ОК</button>
+                        <button onclick="rejectAd('${doc.id}')" style="color:red">Отклонить</button>
                     </div>
                 `;
             });
-            document.getElementById('mod-list').innerHTML = html || 'Заявок нет.';
+            document.getElementById('mod-list').innerHTML = html || 'Очередь пуста';
         });
     }
 
-    function approveAd(id) { db.collection("ads").doc(id).update({ status: "active" }); }
-    function deleteAd(id) { db.collection("ads").doc(id).delete(); }
+    function updateStatus(id, s) { db.collection("ads").doc(id).update({ status: s }); }
+    
+    function rejectAd(id) {
+        const reason = prompt("Укажите причину отказа:");
+        if (reason) {
+            db.collection("ads").doc(id).update({ status: "rejected", reason: reason });
+        }
+    }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 
 </body>
-</html>                 
+</html>
