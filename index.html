@@ -3,165 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO — Маркетплейс нового поколения</title>
+    <title>YAVITO — Full Version</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --blue: #0077ff; --green: #00cc66; --red: #ff3b30; --yellow: #ffcc00; --gray: #f4f4f4; --text: #222; }
-        body { font-family: -apple-system, sans-serif; background: var(--gray); margin: 0; padding-bottom: 70px; color: var(--text); }
+        :root {
+            --bg: #f4f4f4; --card: #ffffff; --text: #222; --blue: #0077ff; 
+            --green: #00cc66; --red: #ff3b30; --gray: #8e8e93;
+        }
+        body.dark {
+            --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366;
+        }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
         
-        /* HEADER */
-        header { background: white; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 24px; font-weight: 900; color: var(--blue); cursor: pointer; }
-        .head-icons { display: flex; gap: 20px; align-items: center; }
-        .head-icons span { font-size: 22px; cursor: pointer; position: relative; }
-        .user-icon { width: 35px; height: 35px; border-radius: 50%; background: #eee; object-fit: cover; border: 1px solid #ddd; }
+        /* HEADER & SEARCH */
+        header { background: var(--card); padding: 10px 15px; border-bottom: 1px solid var(--gray); position: sticky; top: 0; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .head-top { display: flex; justify-content: space-between; align-items: center; }
+        .search-bar { display: flex; gap: 5px; }
+        .search-bar input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--gray); background: var(--bg); color: var(--text); }
+        
+        .logo { font-size: 22px; font-weight: 900; color: var(--blue); cursor: pointer; text-decoration: none; }
+        .theme-btn { font-size: 20px; cursor: pointer; }
 
-        /* PAGES */
-        .page { display: none; padding: 15px; max-width: 900px; margin: 0 auto; }
-        .active-page { display: block; }
-
-        /* GRID & CARDS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
-        .card img { width: 100%; height: 160px; object-fit: cover; }
-        .card-info { padding: 10px; }
-        .price { font-size: 18px; font-weight: bold; }
-
-        /* AD DETAIL PAGE */
-        .ad-view img { width: 100%; border-radius: 15px; margin-bottom: 15px; }
-        .ad-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-
-        /* FORMS */
-        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn { padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-main { background: var(--blue); color: white; }
-        .btn-chat { background: var(--green); color: white; }
-
-        /* STATUSES */
-        .st-active { color: black; font-weight: bold; }
-        .st-pending { color: var(--yellow); font-weight: bold; }
-        .st-rejected { color: var(--red); font-weight: bold; }
-
-        /* NAV */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 65px; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #888; }
+        /* NAVIGATION */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; border-top: 1px solid var(--gray); height: 70px; z-index: 1001; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; color: var(--gray); }
         .nav-item.active { color: var(--blue); }
-        .nav-item i { font-style: normal; font-size: 22px; margin-bottom: 3px; }
+        .nav-item i { font-style: normal; font-size: 24px; margin-bottom: 2px; }
+
+        /* CARDS */
+        .page { display: none; padding: 15px; max-width: 1000px; margin: 0 auto; }
+        .active-page { display: block; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 150px; object-fit: cover; }
+        .card-body { padding: 10px; }
+        .price { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+
+        /* AD DETAIL (LIKE AVITO) */
+        .ad-view-container { background: var(--card); border-radius: 15px; overflow: hidden; }
+        .ad-gallery { display: flex; overflow-x: auto; gap: 5px; height: 300px; }
+        .ad-gallery img { height: 100%; width: 100%; object-fit: contain; background: #000; flex-shrink: 0; }
+        .ad-info { padding: 20px; }
+        .seller-card { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg); border-radius: 10px; margin: 15px 0; }
+        
+        /* ADMIN PANEL */
+        .admin-section { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba; }
+
+        /* BUTTONS */
+        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; display: block; width: 100%; box-sizing: border-box; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-red { background: var(--red); color: white; }
 
         /* MODALS */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 95%; max-width: 500px; padding: 25px; border-radius: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card); width: 90%; max-width: 500px; padding: 20px; border-radius: 15px; max-height: 85vh; overflow-y: auto; }
 
         /* CHAT */
-        .chat-container { height: 400px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 14px; }
+        .chat-win { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: var(--bg); border-radius: 10px; }
+        .msg { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; }
         .msg.my { align-self: flex-end; background: var(--blue); color: white; }
-        .msg.other { align-self: flex-start; background: #eee; }
+        .msg.other { align-self: flex-start; background: var(--gray); color: white; }
 
-        @media (min-width: 768px) {
-            .bottom-nav { display: none; }
+        @media (max-width: 600px) {
+            .head-top .head-icons { display: none; }
         }
     </style>
 </head>
-<body>
+<body id="body">
 
 <header>
-    <div class="logo" onclick="showPage('ads')">YAVITO</div>
-    <div class="head-icons">
-        <span onclick="showPage('chats')">💬</span>
-        <span onclick="showPage('profile')">
-            <img id="head-avatar" class="user-icon" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-        </span>
+    <div class="head-top">
+        <div class="logo" onclick="showPage('ads')">YAVITO</div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span class="theme-btn" onclick="toggleTheme()">🌓</span>
+            <div class="head-icons" style="display: flex; gap: 15px;">
+                <span onclick="showPage('chats')">💬</span>
+                <span onclick="showPage('profile')">👤</span>
+            </div>
+        </div>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Поиск объявлений..." oninput="searchAds()">
     </div>
 </header>
 
 <div id="page-ads" class="page active-page">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h2 style="margin:0;">Рекомендации</h2>
-        <button class="btn-main" style="width:auto; padding:8px 15px;" onclick="openModal('adModal')">+ Подать</button>
+    <div id="admin-panel" style="display:none">
+        <div class="admin-section">
+            <b>🛡️ Кабинет администратора</b>
+            <div id="mod-list" style="margin-top:10px;"></div>
+        </div>
     </div>
-    
-    <div id="admin-panel" style="display:none; background:#fff3cd; padding:15px; border-radius:12px; margin-bottom:15px;">
-        <b>Панель модератора:</b>
-        <div id="mod-items"></div>
-    </div>
-
     <div id="ads-list" class="grid"></div>
 </div>
 
-<div id="page-view" class="page ad-view">
-    <button onclick="showPage('ads')" style="background:none; border:none; color:var(--blue); margin-bottom:10px;">← Назад</button>
-    <div id="ad-content"></div>
+<div id="page-view" class="page">
+    <button onclick="showPage('ads')" style="margin-bottom:10px; background:none; border:none; color:var(--blue); font-weight:bold;">← Назад</button>
+    <div id="ad-view-content" class="ad-view-container"></div>
 </div>
 
 <div id="page-chats" class="page">
-    <h2>Сообщения</h2>
-    <div id="chats-list">
-        <div onclick="openSupport()" style="padding:15px; background:white; border-radius:12px; margin-bottom:10px; cursor:pointer; border-left:5px solid var(--blue);">
-            <b>🆘 Служба поддержки</b>
-            <div style="font-size:12px; color:#888;">Задайте вопрос администрации</div>
-        </div>
-        <div id="user-chats"></div>
+    <h3>Сообщения</h3>
+    <div id="support-entry" class="seller-card" onclick="openSupport()" style="cursor:pointer; border-left: 5px solid var(--blue);">
+        <div>🆘</div>
+        <div><b>Служба поддержки</b><br><small>Задать вопрос админу</small></div>
     </div>
+    <div id="chats-list"></div>
 </div>
 
 <div id="page-profile" class="page">
-    <div style="text-align:center; padding:20px;">
+    <div style="text-align:center; position: relative;">
         <label>
-            <img id="p-avatar" class="user-icon" style="width:100px; height:100px; cursor:pointer;" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-            <input type="file" id="avatar-input" style="display:none" onchange="uploadAvatar(this)">
+            <img id="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; cursor:pointer;">
+            <input type="file" id="avatarInput" style="display:none" onchange="uploadAvatar(this)">
         </label>
-        <h2 id="p-name" style="margin:10px 0 5px;">Загрузка...</h2>
-        <div id="p-rating" style="color:#ff9500; font-weight:bold;">⭐️ 0.0 (0 отзывов)</div>
-        <p style="color:#888; font-size:14px;">На Ювито с <span id="p-date">-</span></p>
+        <div id="avatar-status" style="font-size:12px; margin-top:5px;"></div>
+        <h2 id="user-name-display" style="margin:10px 0;">Загрузка...</h2>
+        <button class="btn" style="width:auto; display:inline-block; font-size:12px;" onclick="editName()">Изм. имя</button>
+        <div id="user-rating" style="color: #ff9500; font-weight:bold; margin-top:10px;">⭐ 0.0 (0 отзывов)</div>
     </div>
-    <hr>
+    <hr style="margin:20px 0; opacity:0.2;">
     <h3>Мои объявления</h3>
     <div id="my-ads-list"></div>
-    <button class="btn" style="margin-top:30px; color:var(--red);" onclick="auth.signOut()">Выйти</button>
+    <button class="btn btn-red" style="margin-top:30px;" onclick="auth.signOut()">Выйти</button>
 </div>
 
-<div id="adModal" class="modal">
+<div id="modal-ad" class="modal">
     <div class="modal-content">
-        <h3 id="modal-title">Новое объявление</h3>
-        <input type="file" id="ad-photos" multiple accept="image/*">
-        <input type="text" id="ad-name" placeholder="Что продаете?">
+        <h3 id="ad-modal-title">Подать объявление</h3>
+        <input type="file" id="ad-files" multiple accept="image/*" style="margin-bottom:10px;">
+        <input type="text" id="ad-title" placeholder="Название">
         <input type="number" id="ad-price" placeholder="Цена (₽)">
         <select id="ad-cat">
-            <option value="Электроника">Электроника</option>
             <option value="Одежда">Одежда</option>
+            <option value="Электроника">Электроника</option>
+            <option value="Дом">Дом</option>
             <option value="Транспорт">Транспорт</option>
-            <option value="Недвижимость">Недвижимость</option>
         </select>
-        <input type="text" id="ad-loc" placeholder="Город, район">
-        <textarea id="ad-desc" rows="5" placeholder="Описание товара"></textarea>
-        <button class="btn btn-main" id="save-ad-btn" onclick="processAd()">Сохранить</button>
-        <button class="btn" onclick="closeModal('adModal')">Отмена</button>
+        <input type="text" id="ad-loc" placeholder="Местоположение (город)">
+        <textarea id="ad-desc" rows="4" placeholder="Описание"></textarea>
+        <button class="btn btn-blue" id="submitAdBtn" onclick="saveAd()">Опубликовать</button>
+        <button class="btn" onclick="closeModal('modal-ad')">Отмена</button>
     </div>
 </div>
 
-<div id="chatModal" class="modal">
-    <div class="modal-content" style="padding:15px;">
-        <h3 id="chat-title">Чат</h3>
-        <div id="chat-box" class="chat-container"></div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <input type="text" id="chat-input" placeholder="Сообщение...">
-            <button class="btn btn-main" style="width:80px;" onclick="sendMsg()">📎</button>
+<div id="modal-chat" class="modal">
+    <div class="modal-content">
+        <h3 id="chat-header">Чат</h3>
+        <div id="chat-messages" class="chat-win"></div>
+        <div style="display:flex; gap:5px; margin-top:10px;">
+            <input type="text" id="chat-input" placeholder="Сообщение..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--gray);">
+            <button class="btn btn-blue" style="width:60px;" onclick="sendMessage()">➤</button>
         </div>
-        <button class="btn" onclick="closeModal('chatModal')">Закрыть</button>
+        <button class="btn" onclick="closeModal('modal-chat')" style="margin-top:10px;">Закрыть</button>
     </div>
 </div>
 
 <nav class="bottom-nav">
-    <div class="nav-item" onclick="showPage('ads')"><i>📢</i>Поиск</div>
+    <div class="nav-item active" onclick="showPage('ads')"><i>🏠</i>Главная</div>
+    <div class="nav-item" onclick="openModal('modal-ad')"><i>➕</i>Подать</div>
     <div class="nav-item" onclick="showPage('chats')"><i>💬</i>Чаты</div>
     <div class="nav-item" onclick="showPage('profile')"><i>👤</i>Профиль</div>
 </nav>
 
 <script>
+    // КОНФИГ
     const firebaseConfig = {
         apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
         authDomain: "yavito-7930e.firebaseapp.com",
@@ -170,7 +179,6 @@
         messagingSenderId: "560885508854",
         appId: "1:560885508854:web:f7c22cebdfde2279dedad7"
     };
-    
     const IMGBB_KEY = 'd3e0d626da4b69b9cadd392fe36efeac';
     const ADMIN_EMAIL = "sobakastalina123@gmail.com";
 
@@ -178,48 +186,53 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let user = null;
-    let editingAdId = null;
+    let currentUser = null;
     let currentChatId = null;
+    let allAds = [];
 
-    // --- РОУТИНГ ---
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById('page-' + id).classList.add('active-page');
-        if(id === 'profile' && user) loadProfile();
-        if(id === 'chats' && user) loadChats();
-    }
-
-    auth.onAuthStateChanged(u => {
-        user = u;
-        if(u) {
-            db.collection('users').doc(u.uid).set({
-                name: u.displayName,
-                email: u.email,
-                joined: new Date().toLocaleDateString('ru-RU')
-            }, { merge: true });
-            
-            db.collection('users').doc(u.uid).onSnapshot(doc => {
-                const data = doc.data();
-                if(data.avatar) {
-                    document.getElementById('head-avatar').src = data.avatar;
-                    document.getElementById('p-avatar').src = data.avatar;
-                }
-            });
-
-            if(u.email === ADMIN_EMAIL) {
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            initUserRecord();
+            if(user.email === ADMIN_EMAIL) {
                 document.getElementById('admin-panel').style.display = 'block';
-                loadAdminModeration();
+                loadModerationQueue();
             }
+            loadAds();
+            loadProfile();
         } else {
-            login();
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
         }
-        loadAds();
     });
 
-    function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    async function initUserRecord() {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if(!doc.exists) {
+            await db.collection('users').doc(currentUser.uid).set({
+                name: currentUser.displayName,
+                avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                avatarStatus: 'active',
+                rating: 0,
+                reviews: 0
+            });
+        }
+        db.collection('users').doc(currentUser.uid).onSnapshot(s => {
+            const data = s.data();
+            document.getElementById('user-name-display').innerText = data.name;
+            document.getElementById('user-avatar').src = data.avatar;
+            document.getElementById('avatar-status').innerText = data.avatarStatus === 'pending' ? '⌛ Аватар на проверке' : '';
+        });
+    }
 
-    // --- ФОТО ХЕНДЛЕР ---
+    // --- ТЕМЫ ---
+    function toggleTheme() {
+        document.getElementById('body').classList.toggle('dark');
+        localStorage.setItem('theme', document.getElementById('body').classList.contains('dark') ? 'dark' : 'light');
+    }
+    if(localStorage.getItem('theme') === 'dark') document.getElementById('body').classList.add('dark');
+
+    // --- ОБЪЯВЛЕНИЯ ---
     async function uploadToImgBB(file) {
         let formData = new FormData();
         formData.append("image", file);
@@ -228,210 +241,218 @@
         return data.data.url;
     }
 
-    async function uploadAvatar(input) {
-        const url = await uploadToImgBB(input.files[0]);
-        // Аватар идет на модерацию (в данном примере упростим - сразу ставим, но можно добавить статус)
-        db.collection('users').doc(user.uid).update({ avatar: url });
-    }
+    async function saveAd() {
+        const btn = document.getElementById('submitAdBtn');
+        btn.disabled = true; btn.innerText = 'Загрузка...';
 
-    // --- ОБЪЯВЛЕНИЯ ---
-    async function processAd() {
-        const btn = document.getElementById('save-ad-btn');
-        btn.disabled = true;
-        btn.innerText = "Загрузка...";
+        const files = document.getElementById('ad-files').files;
+        let photos = [];
+        for(let f of files) photos.push(await uploadToImgBB(f));
 
-        const files = document.getElementById('ad-photos').files;
-        let photoUrls = [];
-        if(files.length > 0) {
-            for(let f of files) photoUrls.push(await uploadToImgBB(f));
-        }
-
-        const adData = {
-            title: document.getElementById('ad-name').value,
+        const ad = {
+            title: document.getElementById('ad-title').value,
             price: document.getElementById('ad-price').value,
             cat: document.getElementById('ad-cat').value,
             loc: document.getElementById('ad-loc').value,
             desc: document.getElementById('ad-desc').value,
+            photos: photos,
+            authorId: currentUser.uid,
+            authorName: currentUser.displayName,
             status: 'pending',
-            authorId: user.uid,
-            authorName: user.displayName,
-            updatedAt: new Date()
+            createdAt: new Date()
         };
 
-        if(photoUrls.length > 0) adData.photos = photoUrls;
-
-        if(editingAdId) {
-            await db.collection('ads').doc(editingAdId).update(adData);
-        } else {
-            adData.createdAt = new Date();
-            await db.collection('ads').add(adData);
-        }
-
-        alert("Отправлено на модерацию!");
+        await db.collection('ads').add(ad);
+        alert('Объявление отправлено на модерацию!');
         location.reload();
     }
 
     function loadAds() {
-        db.collection("ads").where("status", "==", "active").onSnapshot(snap => {
-            let html = '';
-            snap.forEach(doc => {
-                const ad = doc.data();
-                html += `
-                    <div class="card" onclick="viewAd('${doc.id}')">
-                        <img src="${ad.photos ? ad.photos[0] : 'https://via.placeholder.com/150'}">
-                        <div class="card-info">
-                            <div class="price">${ad.price} ₽</div>
-                            <div style="font-size:14px;">${ad.title}</div>
-                            <div style="font-size:12px; color:#888; margin-top:5px;">${ad.loc}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('ads-list').innerHTML = html || 'Нет товаров';
+        db.collection('ads').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(snap => {
+            allAds = [];
+            snap.forEach(doc => allAds.push({id: doc.id, ...doc.data()}));
+            renderAds(allAds);
         });
+    }
+
+    function renderAds(list) {
+        let html = '';
+        list.forEach(ad => {
+            html += `
+                <div class="card" onclick="viewAd('${ad.id}')">
+                    <img src="${ad.photos[0] || ''}">
+                    <div class="card-body">
+                        <div class="price">${ad.price} ₽</div>
+                        <div style="font-size:14px; height:40px; overflow:hidden;">${ad.title}</div>
+                        <div style="color:var(--gray); font-size:12px; margin-top:5px;">${ad.loc}</div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('ads-list').innerHTML = html || 'Ничего не найдено';
     }
 
     async function viewAd(id) {
         const doc = await db.collection('ads').doc(id).get();
         const ad = doc.data();
         showPage('view');
-        document.getElementById('ad-content').innerHTML = `
-            <img src="${ad.photos ? ad.photos[0] : ''}">
-            <h1>${ad.price} ₽</h1>
-            <h3>${ad.title}</h3>
-            <p style="color:#888;">${ad.cat} • ${ad.loc}</p>
-            <hr>
-            <p>${ad.desc}</p>
-            <div class="btn-group">
-                <button class="btn btn-chat" onclick="startChat('${ad.authorId}', '${ad.title}')">Написать</button>
+        
+        let galleryHtml = ad.photos.map(p => `<img src="${p}">`).join('');
+        
+        document.getElementById('ad-view-content').innerHTML = `
+            <div class="ad-gallery">${galleryHtml}</div>
+            <div class="ad-info">
+                <h1 style="margin:0;">${ad.price} ₽</h1>
+                <h2 style="margin:10px 0; font-weight:normal;">${ad.title}</h2>
+                <p style="color:var(--gray);">${ad.loc} • ${ad.cat}</p>
+                <hr style="opacity:0.1;">
+                <p style="white-space: pre-wrap;">${ad.desc}</p>
+                <div class="seller-card">
+                    <div style="width:50px; height:50px; background:#eee; border-radius:50%; font-size:24px; display:grid; place-items:center;">👤</div>
+                    <div>
+                        <b>${ad.authorName}</b><br>
+                        <small>⭐ 0.0 (0 отзывов)</small>
+                    </div>
+                </div>
+                <button class="btn btn-blue" onclick="startChat('${ad.authorId}', '${ad.title}')">Написать сообщение</button>
             </div>
         `;
     }
 
-    // --- ПРОФИЛЬ И РЕДАКТИРОВАНИЕ ---
-    async function loadProfile() {
-        const uDoc = await db.collection('users').doc(user.uid).get();
-        const data = uDoc.data();
-        document.getElementById('p-name').innerText = user.displayName;
-        document.getElementById('p-date').innerText = data.joined;
-
-        db.collection('ads').where('authorId', '==', user.uid).onSnapshot(snap => {
-            let html = '';
-            snap.forEach(doc => {
-                const ad = doc.data();
-                let statusClass = ad.status === 'active' ? 'st-active' : (ad.status === 'pending' ? 'st-pending' : 'st-rejected');
-                let statusText = ad.status === 'active' ? 'Размещено' : (ad.status === 'pending' ? 'На проверке' : 'Удалено: ' + (ad.reason || 'Нарушение правил'));
-                
-                html += `
-                    <div style="background:white; padding:10px; border-radius:10px; margin-top:10px; display:flex; gap:10px;">
-                        <img src="${ad.photos ? ad.photos[0] : ''}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">
-                        <div>
-                            <b>${ad.title}</b><br>
-                            <span class="${statusClass}">${statusText}</span><br>
-                            <button onclick="editAd('${doc.id}')" style="margin-top:5px; background:none; border:none; color:var(--blue); padding:0;">Редактировать</button>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('my-ads-list').innerHTML = html;
-        });
-    }
-
-    async function editAd(id) {
-        editingAdId = id;
-        const doc = await db.collection('ads').doc(id).get();
-        const ad = doc.data();
-        document.getElementById('ad-name').value = ad.title;
-        document.getElementById('ad-price').value = ad.price;
-        document.getElementById('ad-cat').value = ad.cat;
-        document.getElementById('ad-loc').value = ad.loc;
-        document.getElementById('ad-desc').value = ad.desc;
-        document.getElementById('modal-title').innerText = "Редактировать";
-        openModal('adModal');
-    }
-
-    // --- АДМИНКА ---
-    function loadAdminModeration() {
+    // --- МОДЕРАЦИЯ И АДМИНКА ---
+    function loadModerationQueue() {
+        // Очередь объявлений
         db.collection('ads').where('status', '==', 'pending').onSnapshot(snap => {
-            let html = '';
+            let html = '<b>Объявления:</b><br>';
             snap.forEach(doc => {
                 const ad = doc.data();
-                html += `
-                    <div style="background:white; padding:10px; border-radius:8px; margin-top:5px;">
-                        <b>${ad.title}</b> (${ad.authorName})
-                        <div style="margin-top:5px;">
-                            <button onclick="adminAction('${doc.id}', 'active')" style="color:green">Одобрить</button>
-                            <button onclick="adminReject('${doc.id}')" style="color:red">Удалить</button>
-                        </div>
-                    </div>
-                `;
+                html += `<div style="padding:5px; border-bottom:1px solid #ccc;">
+                    ${ad.title} | <button onclick="modAd('${doc.id}', 'active')">✅</button> 
+                    <button onclick="modAd('${doc.id}', 'rejected')">❌</button>
+                </div>`;
             });
-            document.getElementById('mod-items').innerHTML = html || 'Очередь пуста';
+            document.getElementById('mod-list').innerHTML = html;
+        });
+
+        // Очередь аватарок
+        db.collection('users').where('avatarStatus', '==', 'pending').onSnapshot(snap => {
+            snap.forEach(doc => {
+                const u = doc.data();
+                const div = document.createElement('div');
+                div.innerHTML = `Аватар ${u.name}: <img src="${u.pendingAvatar}" style="width:30px;"> 
+                <button onclick="modAvatar('${doc.id}', true)">✅</button>`;
+                document.getElementById('mod-list').appendChild(div);
+            });
         });
     }
 
-    function adminAction(id, s) { db.collection('ads').doc(id).update({ status: s }); }
-    function adminReject(id) {
-        const r = prompt("Причина удаления:");
-        if(r) db.collection('ads').doc(id).update({ status: 'rejected', reason: r });
+    function modAd(id, s) { db.collection('ads').doc(id).update({status: s}); }
+
+    async function uploadAvatar(input) {
+        const url = await uploadToImgBB(input.files[0]);
+        await db.collection('users').doc(currentUser.uid).update({
+            pendingAvatar: url,
+            avatarStatus: 'pending'
+        });
+        alert('Фото отправлено модератору!');
     }
 
-    // --- ЧАТЫ И ПОДДЕРЖКА ---
+    async function modAvatar(uid, ok) {
+        const u = (await db.collection('users').doc(uid).get()).data();
+        if(ok) {
+            await db.collection('users').doc(uid).update({
+                avatar: u.pendingAvatar,
+                avatarStatus: 'active'
+            });
+        }
+    }
+
+    // --- ПРОФИЛЬ ---
+    async function loadProfile() {
+        db.collection('ads').where('authorId', '==', currentUser.uid).onSnapshot(snap => {
+            let html = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                let color = ad.status === 'active' ? 'black' : (ad.status === 'pending' ? '#ff9500' : 'red');
+                html += `
+                    <div class="seller-card" style="justify-content:space-between">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <img src="${ad.photos[0]}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                            <div>
+                                <b>${ad.title}</b><br>
+                                <small style="color:${color}">${ad.status.toUpperCase()}</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-red" style="width:40px; padding:5px;" onclick="deleteAd('${doc.id}')">🗑️</button>
+                    </div>
+                `;
+            });
+            document.getElementById('my-ads-list').innerHTML = html || 'У вас нет объявлений';
+        });
+    }
+
+    function deleteAd(id) { if(confirm('Удалить?')) db.collection('ads').doc(id).delete(); }
+
+    function editName() {
+        const n = prompt("Новое имя:");
+        if(n) db.collection('users').doc(currentUser.uid).update({name: n});
+    }
+
+    // --- ЧАТЫ ---
     function openSupport() {
-        currentChatId = "support_" + user.uid;
-        document.getElementById('chat-title').innerText = "Поддержка";
-        openModal('chatModal');
-        listenMsgs();
+        currentChatId = "support_" + currentUser.uid;
+        document.getElementById('chat-header').innerText = "Поддержка";
+        openModal('modal-chat');
+        listenMessages();
     }
 
-    async function startChat(sellerId, title) {
-        if(sellerId === user.uid) return alert("Это ваше объявление");
-        currentChatId = [user.uid, sellerId].sort().join("_");
-        document.getElementById('chat-title').innerText = title;
-        openModal('chatModal');
-        listenMsgs();
+    function startChat(otherId, title) {
+        currentChatId = [currentUser.uid, otherId].sort().join("_");
+        document.getElementById('chat-header').innerText = title;
+        openModal('modal-chat');
+        listenMessages();
     }
 
-    function listenMsgs() {
+    function listenMessages() {
         db.collection('chats').doc(currentChatId).collection('messages').orderBy('time').onSnapshot(snap => {
             let html = '';
             snap.forEach(m => {
-                const msg = m.data();
-                const isMy = msg.senderId === user.uid;
-                html += `<div class="msg ${isMy ? 'my' : 'other'}">
-                    ${msg.text}
-                </div>`;
+                const d = m.data();
+                const isMy = d.senderId === currentUser.uid;
+                html += `<div class="msg ${isMy ? 'my' : 'other'}">${d.text}</div>`;
             });
-            const box = document.getElementById('chat-box');
-            box.innerHTML = html;
-            box.scrollTop = box.scrollHeight;
+            const win = document.getElementById('chat-messages');
+            win.innerHTML = html;
+            win.scrollTop = win.scrollHeight;
         });
     }
 
-    async function sendMsg() {
+    async function sendMessage() {
         const input = document.getElementById('chat-input');
-        const text = input.value;
-        if(!text) return;
-        
+        if(!input.value) return;
         await db.collection('chats').doc(currentChatId).collection('messages').add({
-            text: text,
-            senderId: user.uid,
-            senderName: user.displayName,
+            text: input.value,
+            senderId: currentUser.uid,
             time: new Date()
         });
-        
-        // Для поддержки: уведомляем админа
-        if(currentChatId.startsWith("support")) {
-            db.collection('admin_alerts').add({ text: `@${user.displayName}: ${text}`, time: new Date() });
-        }
-
         input.value = '';
     }
 
-    // --- УТИЛИТЫ ---
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; editingAdId = null; }
+    // --- ПОИСК ---
+    function searchAds() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allAds.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
+        renderAds(filtered);
+    }
 
+    // --- ВСПОМОГАТЕЛЬНОЕ ---
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById('page-'+id).classList.add('active-page');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 </body>
 </html>
