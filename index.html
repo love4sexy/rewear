@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO 4.0 — Финал</title>
+    <title>YAVITO 5.0 — Ультиматум</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -41,11 +41,12 @@
         .card-body { padding: 12px; }
         .price { font-size: 18px; font-weight: 800; color: var(--text); }
 
-        /* MODERATION */
+        /* MODERATION & ADMIN */
         .admin-box { background: rgba(255, 149, 0, 0.1); border: 1px solid #ff9500; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
         .mod-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; color: var(--text); }
         .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
         .mod-gallery img { height: 120px; border-radius: 5px; object-fit: contain; background: #000; }
+        .admin-section { margin-top: 20px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
 
         /* AD VIEW */
         .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); margin-top: 10px; }
@@ -65,7 +66,8 @@
 
         /* CHAT HEADER & DROPDOWN */
         .chat-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; position: relative; }
-        .dropdown { display: none; position: absolute; top: 40px; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2500; overflow: hidden; width: 220px; }
+        .chat-header-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .dropdown { display: none; position: absolute; top: 40px; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2500; overflow: hidden; width: 250px; }
         .dropdown.show { display: block; }
         .drop-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
         .drop-item:last-child { border-bottom: none; }
@@ -81,9 +83,17 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
         .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 25px; border-radius: 25px; max-height: 90vh; overflow-y: auto; position: relative; }
 
-        /* RATING STARS */
+        /* OVERLAY MODALS (BANS/WARNINGS) */
+        .modal-blocking { z-index: 9999; background: rgba(0,0,0,0.95); }
+        .modal-blocking .modal-content { text-align: center; border: 2px solid var(--red); }
+        .modal-warning { z-index: 9998; background: rgba(0,0,0,0.9); }
+        .modal-warning .modal-content { text-align: center; border: 2px solid #ff9500; }
+
+        /* RATING STARS & REVIEWS */
         .stars { display: flex; gap: 10px; justify-content: center; font-size: 30px; cursor: pointer; color: var(--gray); margin: 15px 0; }
         .stars span.active { color: #ff9500; }
+        .review-item { background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; position: relative; }
+        .review-menu-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; font-weight: bold; padding: 0 10px; }
 
         @media (min-width: 768px) { .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); } }
     </style>
@@ -117,6 +127,18 @@
     <div id="ad-full-content" class="ad-full"></div>
 </div>
 
+<div id="page-public-profile" class="page">
+    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer; font-size: 16px;">← Назад</button>
+    <div style="text-align:center; margin-top: 10px;">
+        <img id="pub-avatar" src="" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue);">
+        <h2 id="pub-name" style="margin:10px 0;">...</h2>
+        <div id="pub-rating" style="margin-top:5px; font-weight:bold; color:#ff9500; font-size:18px; cursor:pointer; text-decoration: underline;" onclick="openReviewsList(currentPublicUid)">⭐ 0.0 (0 отзывов)</div>
+    </div>
+    <hr style="margin:25px 0; opacity:0.1;">
+    <h3>Объявления пользователя</h3>
+    <div id="pub-ads-container" class="grid"></div>
+</div>
+
 <div id="page-chats" class="page">
     <h2>Сообщения</h2>
     <div class="chat-list-item" onclick="openSupport()" style="border-left: 5px solid #ff9500;">
@@ -139,7 +161,7 @@
         <div id="ava-status" style="font-size:12px; color:#ff9500; margin-top:5px; font-weight:bold;"></div>
         <h2 id="u-name" style="margin:10px 0;">...</h2>
         <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block;" onclick="changeName()">Сменить имя</button>
-        <div id="u-rating" style="margin-top:15px; font-weight:bold; color:#ff9500; font-size:18px;">⭐ 0.0 (0 отзывов)</div>
+        <div id="u-rating" style="margin-top:15px; font-weight:bold; color:#ff9500; font-size:18px; cursor:pointer; text-decoration: underline;" onclick="openReviewsList(user.uid)">⭐ 0.0 (0 отзывов)</div>
     </div>
     <hr style="margin:25px 0; opacity:0.1;">
     <h3>Мои товары</h3>
@@ -149,19 +171,30 @@
 
 <div id="page-admin" class="page">
     <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад</button>
-    <h2>🛡️ Модерация</h2>
-    <h3>Фото профилей</h3>
-    <div id="mod-avas"></div>
-    <h3>Объявления</h3>
-    <div id="mod-ads"></div>
-    <h3>Отзывы</h3>
-    <div id="mod-reviews"></div>
+    <h2>🛡️ Панель Модератора</h2>
+    
+    <div class="admin-section">
+        <h3 style="color: var(--red); margin-top:0;">Управление пользователями</h3>
+        <input type="text" id="admin-target-uid" placeholder="Введите UID пользователя...">
+        <input type="text" id="admin-punish-reason" placeholder="Причина (обязательно)...">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-blue" style="background:#ff9500;" onclick="adminIssueWarning()">Выдать варн</button>
+            <button class="btn btn-red" style="background:var(--red); color:white;" onclick="adminBanUser()">Заблокировать</button>
+            <button class="btn" onclick="adminUnbanUser()">Разбанить</button>
+        </div>
+    </div>
+
+    <div class="admin-section"><h3>Жалобы на пользователей</h3><div id="mod-user-reports"></div></div>
+    <div class="admin-section"><h3>Жалобы на отзывы</h3><div id="mod-review-reports"></div></div>
+    <div class="admin-section"><h3>Фото профилей</h3><div id="mod-avas"></div></div>
+    <div class="admin-section"><h3>Объявления</h3><div id="mod-ads"></div></div>
 </div>
 
 <div id="modal-post" class="modal">
     <div class="modal-content">
-        <h2>Новое объявление</h2>
+        <h2 id="modal-post-title">Новое объявление</h2>
         <input type="file" id="post-images" multiple accept="image/*">
+        <small id="post-img-hint" style="color:var(--gray); display:none;">(Оставьте пустым, чтобы не менять фото)</small>
         <input type="text" id="post-title" placeholder="Название">
         <input type="number" id="post-price" placeholder="Цена (₽)">
         <select id="post-cat">
@@ -174,16 +207,19 @@
         <input type="text" id="post-loc" placeholder="Город">
         <textarea id="post-desc" rows="5" placeholder="Описание товара..."></textarea>
         <button class="btn btn-blue" id="sendAdBtn" onclick="submitAd()">Опубликовать</button>
-        <button class="btn" onclick="closeModal('modal-post')" style="margin-top:10px;">Отмена</button>
+        <button class="btn" onclick="closeModal('modal-post'); editingAdId = null;" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
 
 <div id="modal-chat" class="modal">
     <div class="modal-content" style="padding:15px; display:flex; flex-direction:column; max-width: 600px; height: 85vh;">
         <div class="chat-header">
-            <div>
-                <h3 id="chat-with-name" style="margin:0;">Чат</h3>
-                <small id="chat-status" style="color:var(--gray);"></small>
+            <div class="chat-header-profile" onclick="if(!isSupportMode) openPublicProfileFromChat()">
+                <img id="chat-with-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; display:none;">
+                <div>
+                    <h3 id="chat-with-name" style="margin:0;">Чат</h3>
+                    <small id="chat-status" style="color:var(--gray);"></small>
+                </div>
             </div>
             <div style="display:flex; gap:10px;">
                 <button class="btn" id="btn-review" style="display:none; padding:8px 15px; font-size:12px; width:auto; background:#ff9500; color:white;" onclick="openReviewModal()">Оставить отзыв</button>
@@ -192,6 +228,7 @@
             <div id="chat-dropdown" class="dropdown">
                 <div class="drop-item" onclick="actionChat('pin')">📌 Закрепить / Открепить</div>
                 <div class="drop-item" onclick="actionChat('mute')">🔕 Вкл/Выкл уведомления</div>
+                <div class="drop-item" onclick="openReportUserModal()" style="color:#ff9500;">🚨 Пожаловаться</div>
                 <div class="drop-item" onclick="actionChat('block')" style="color:var(--red);">🚫 Заблокировать / Разблокировать</div>
                 <div class="drop-item" onclick="actionChat('delete')" style="color:var(--red);">🗑️ Удалить чат навсегда</div>
             </div>
@@ -221,6 +258,55 @@
         <textarea id="review-text" rows="4" placeholder="Напишите подробнее (например: разбитый экран, отличный продавец)..."></textarea>
         <button class="btn btn-blue" onclick="submitReview()">Отправить отзыв</button>
         <button class="btn" onclick="closeModal('modal-review')" style="margin-top:10px;">Отмена</button>
+    </div>
+</div>
+
+<div id="modal-reviews-list" class="modal">
+    <div class="modal-content">
+        <h2>Отзывы пользователя</h2>
+        <div id="reviews-list-container" style="max-height: 60vh; overflow-y:auto; margin-bottom: 15px;">Загрузка...</div>
+        <button class="btn" onclick="closeModal('modal-reviews-list')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-report-review" class="modal">
+    <div class="modal-content">
+        <h2>Почему вы хотите удалить отзыв?</h2>
+        <textarea id="report-review-reason" rows="4" placeholder="Укажите причину (обязательно)..."></textarea>
+        <p style="margin-bottom: 5px;">Прикрепить фото (доказательства):</p>
+        <input type="file" id="report-review-photos" multiple accept="image/*">
+        <button class="btn btn-blue" id="btn-send-review-report" style="margin-top: 15px;" onclick="submitReviewReport()">Отправить жалобу</button>
+        <button class="btn" onclick="closeModal('modal-report-review')" style="margin-top:10px;">Отмена</button>
+    </div>
+</div>
+
+<div id="modal-report-user" class="modal">
+    <div class="modal-content">
+        <h2>Жалоба на пользователя</h2>
+        <p>Вы жалуетесь на: <b id="report-user-target-name">...</b></p>
+        <textarea id="report-user-reason" rows="4" placeholder="Опишите причину жалобы..."></textarea>
+        <button class="btn btn-blue" style="margin-top:15px; background:var(--red);" onclick="submitUserReport()">Отправить админу</button>
+        <button class="btn" onclick="closeModal('modal-report-user')" style="margin-top:10px;">Отмена</button>
+    </div>
+</div>
+
+<div id="modal-banned" class="modal modal-blocking">
+    <div class="modal-content">
+        <div style="font-size: 50px; color: var(--red);">❌</div>
+        <h2 style="color: var(--red);">Ваш аккаунт заблокирован!</h2>
+        <p>Причина: <b id="ban-reason-text">...</b></p>
+        <button class="btn btn-red" style="margin-top: 20px;" onclick="logout()">Выйти из аккаунта</button>
+    </div>
+</div>
+
+<div id="modal-warning" class="modal modal-warning">
+    <div class="modal-content">
+        <div style="font-size: 50px; color: #ff9500;">⚠️</div>
+        <h2 style="color: #ff9500;">Предупреждение от Модератора</h2>
+        <p>Вы нарушили правила площадки.</p>
+        <p>Причина: <b id="warn-reason-text">...</b></p>
+        <small style="color:var(--gray);">Повторные нарушения приведут к перманентной блокировке.</small>
+        <button class="btn btn-blue" style="margin-top: 20px;" onclick="acceptWarning()">Понял</button>
     </div>
 </div>
 
@@ -256,11 +342,15 @@
     let currentChatId = null;
     let isSupportMode = false;
     let chatTargetUid = null;
+    let chatTargetName = "";
     let currentChatBlocked = false;
     let currentChatMsgCount = 0;
     
-    // Для отзывов
+    // Для отзывов и редактирования
     let selectedStars = 0;
+    let currentPublicUid = null;
+    let editingAdId = null;
+    let reviewReportTargetId = null;
     
     // Карта имен поддержки (для админа)
     let supportNameMap = {};
@@ -280,7 +370,7 @@
             user = null; userData = null;
             document.getElementById('auth-btn').style.display = 'block';
         }
-        loadFeed(); // Ленту грузим для всех
+        loadFeed(); 
     });
 
     function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
@@ -291,6 +381,7 @@
             if(confirm("Для этого действия нужно войти в аккаунт. Войти сейчас?")) login();
             return;
         }
+        if(userData && userData.banned) return; 
         action();
     }
 
@@ -301,11 +392,27 @@
             await ref.set({
                 name: user.displayName || 'Пользователь',
                 avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                ratingSum: 0, reviewCount: 0
+                ratingSum: 0, reviewCount: 0, banned: false, warned: false
             });
         }
         ref.onSnapshot(s => {
+            if(!s.exists) return;
             userData = s.data();
+
+            // ПРОВЕРКА НА БАН И ВАРН
+            if(userData.banned) {
+                document.getElementById('ban-reason-text').innerText = userData.banReason || "Нарушение правил";
+                document.getElementById('modal-banned').style.display = 'flex';
+                return; // Блокируем дальнейшее выполнение UI профиля
+            } else {
+                document.getElementById('modal-banned').style.display = 'none';
+            }
+
+            if(userData.warned) {
+                document.getElementById('warn-reason-text').innerText = userData.warnReason || "Нарушение правил";
+                document.getElementById('modal-warning').style.display = 'flex';
+            }
+
             document.getElementById('u-name').innerText = userData.name;
             document.getElementById('u-avatar').src = userData.avatar;
             document.getElementById('ava-status').innerText = userData.pendingAva ? "⌛ Фото на модерации" : "";
@@ -313,7 +420,13 @@
             let rCount = userData.reviewCount || 0;
             let rAvg = rCount > 0 ? (userData.ratingSum / rCount).toFixed(1) : "0.0";
             document.getElementById('u-rating').innerText = `⭐ ${rAvg} (${rCount} отзывов)`;
+            loadProfileAds();
         });
+    }
+
+    function acceptWarning() {
+        db.collection('users').doc(user.uid).update({ warned: false });
+        document.getElementById('modal-warning').style.display = 'none';
     }
 
     function toggleTheme() {
@@ -321,6 +434,31 @@
         localStorage.setItem('yv_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
     if(localStorage.getItem('yv_theme') === 'dark') document.body.classList.add('dark');
+
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById('page-' + id).classList.add('active-page');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(id === 'home' || id === 'chats' || id === 'profile') {
+            document.querySelectorAll('.nav-item').forEach(n => {
+                if(n.innerText.toLowerCase().includes(id === 'home' ? 'главная' : id === 'chats' ? 'чаты' : 'профиль')) n.classList.add('active');
+            });
+        }
+        window.scrollTo(0, 0);
+    }
+    function openModal(id) { 
+        if(id === 'modal-post') {
+            editingAdId = null;
+            document.getElementById('modal-post-title').innerText = "Новое объявление";
+            document.getElementById('sendAdBtn').innerText = "Опубликовать";
+            document.getElementById('post-img-hint').style.display = 'none';
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-price').value = '';
+            document.getElementById('post-desc').value = '';
+        }
+        document.getElementById(id).style.display = 'flex'; 
+    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function upImg(file) {
         let fd = new FormData(); fd.append("image", file);
@@ -331,26 +469,55 @@
     // --- ОБЪЯВЛЕНИЯ ---
     async function submitAd() {
         const btn = document.getElementById('sendAdBtn');
-        btn.disabled = true; btn.innerText = "Загрузка фото...";
+        btn.disabled = true; btn.innerText = "Сохранение...";
         
         const files = document.getElementById('post-images').files;
-        if(files.length === 0) { alert("Добавьте хотя бы одно фото!"); btn.disabled = false; btn.innerText = "Опубликовать"; return; }
         let urls = [];
-        for(let f of files) urls.push(await upImg(f));
+        
+        if(files.length > 0) {
+            for(let f of files) urls.push(await upImg(f));
+        }
 
-        await db.collection('ads').add({
+        let adData = {
             title: document.getElementById('post-title').value,
             price: document.getElementById('post-price').value,
             cat: document.getElementById('post-cat').value,
             loc: document.getElementById('post-loc').value,
             desc: document.getElementById('post-desc').value,
-            photos: urls,
-            authorId: user.uid,
             status: 'pending',
             time: new Date()
-        });
-        alert("Объявление отправлено на модерацию!");
+        };
+
+        if(editingAdId) {
+            if(urls.length > 0) adData.photos = urls; // Обновляем фото только если выбрали новые
+            await db.collection('ads').doc(editingAdId).update(adData);
+            alert("Изменения сохранены и отправлены на модерацию!");
+        } else {
+            if(urls.length === 0) { alert("Добавьте хотя бы одно фото!"); btn.disabled = false; btn.innerText = "Опубликовать"; return; }
+            adData.photos = urls;
+            adData.authorId = user.uid;
+            await db.collection('ads').add(adData);
+            alert("Объявление отправлено на модерацию!");
+        }
         location.reload();
+    }
+
+    function editAd(adId) {
+        db.collection('ads').doc(adId).get().then(doc => {
+            let ad = doc.data();
+            editingAdId = adId;
+            document.getElementById('modal-post-title').innerText = "Изменить объявление";
+            document.getElementById('sendAdBtn').innerText = "Сохранить изменения";
+            document.getElementById('post-img-hint').style.display = 'block';
+            
+            document.getElementById('post-title').value = ad.title;
+            document.getElementById('post-price').value = ad.price;
+            document.getElementById('post-cat').value = ad.cat;
+            document.getElementById('post-loc').value = ad.loc;
+            document.getElementById('post-desc').value = ad.desc;
+            
+            openModal('modal-post');
+        });
     }
 
     function loadFeed() {
@@ -388,7 +555,6 @@
         const d = await db.collection('ads').doc(id).get();
         const ad = d.data();
         
-        // Получаем свежие данные автора
         const authorDoc = await db.collection('users').doc(ad.authorId).get();
         const authorData = authorDoc.exists ? authorDoc.data() : {name: "Неизвестен", avatar: "", reviewCount: 0};
         let rAvg = authorData.reviewCount > 0 ? (authorData.ratingSum / authorData.reviewCount).toFixed(1) : "0.0";
@@ -402,13 +568,44 @@
                 <h2 style="font-weight:normal; margin:10px 0;">${ad.title}</h2>
                 <p style="color:var(--gray); margin-bottom:20px;">${ad.loc} • ${ad.cat}</p>
                 <div style="white-space:pre-wrap; line-height:1.5;">${ad.desc}</div>
-                <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px;">
+                <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="showPublicProfile('${ad.authorId}')">
                     <img src="${authorData.avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;">
                     <div><b>${authorData.name}</b><br><small style="color:#ff9500; font-weight:bold;">⭐ ${rAvg} (${authorData.reviewCount || 0} отз.)</small></div>
                 </div>
-                <button class="btn btn-blue" style="margin-top:15px;" onclick="requireAuth(() => startNewChat('${ad.authorId}', '${authorData.name}'))">Написать продавцу</button>
+                <button class="btn btn-blue" style="margin-top:15px;" onclick="requireAuth(() => startNewChat('${ad.authorId}', '${authorData.name}', '${authorData.avatar}'))">Написать продавцу</button>
             </div>
         `;
+    }
+
+    // --- ПУБЛИЧНЫЙ ПРОФИЛЬ ---
+    async function showPublicProfile(uid) {
+        currentPublicUid = uid;
+        const doc = await db.collection('users').doc(uid).get();
+        if(!doc.exists) return;
+        const d = doc.data();
+        
+        document.getElementById('pub-avatar').src = d.avatar;
+        document.getElementById('pub-name').innerText = d.name;
+        let rAvg = d.reviewCount > 0 ? (d.ratingSum / d.reviewCount).toFixed(1) : "0.0";
+        document.getElementById('pub-rating').innerText = `⭐ ${rAvg} (${d.reviewCount || 0} отзывов)`;
+        
+        showPage('public-profile');
+        
+        db.collection('ads').where('authorId','==',uid).where('status','==','active').get().then(snap => {
+            let h = '';
+            snap.forEach(adDoc => {
+                let ad = adDoc.data();
+                h += `
+                <div class="card" onclick="openAd('${adDoc.id}')">
+                    <img src="${ad.photos[0]}">
+                    <div class="card-body">
+                        <div class="price">${ad.price} ₽</div>
+                        <div style="font-size:14px; margin:4px 0;">${ad.title}</div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('pub-ads-container').innerHTML = h || '<p>Нет активных объявлений</p>';
+        });
     }
 
     // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
@@ -438,15 +635,18 @@
                         <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
                         <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
                     </div>
-                    <button class="btn btn-red" style="width:40px; padding:8px;" onclick="if(confirm('Удалить?')) db.collection('ads').doc('${doc.id}').delete();">🗑️</button>
+                    <div>
+                        <button class="btn btn-blue" style="width:auto; padding:8px; margin-right:5px;" onclick="editAd('${doc.id}')">✏️</button>
+                        <button class="btn btn-red" style="width:auto; padding:8px;" onclick="if(confirm('Удалить?')) db.collection('ads').doc('${doc.id}').delete();">🗑️</button>
+                    </div>
                 </div>`;
             });
             document.getElementById('my-ads-container').innerHTML = h || '<p>У вас пока нет объявлений</p>';
         });
     }
 
-    // --- ЧАТЫ (СИСТЕМА + 3 ТОЧКИ) ---
-    async function startNewChat(otherId, otherName) {
+    // --- ЧАТЫ ---
+    async function startNewChat(otherId, otherName, otherAvatar) {
         if(otherId === user.uid) { alert("Это ваше объявление."); return; }
         let chatId = [user.uid, otherId].sort().join("_");
         
@@ -460,26 +660,51 @@
                 muted: {}, pinned: {}
             });
         }
-        openChatWindow(chatId, otherName, otherId, false);
+        openChatWindow(chatId, otherName, otherId, false, otherAvatar);
     }
 
-    function openChatWindow(chatId, title, targetUid, isSupport) {
+    function openSupport() {
+        openChatWindow('support_chat', 'Служба поддержки', 'admin', true, '');
+    }
+
+    async function checkIfReviewed(targetId) {
+        const snap = await db.collection('reviews').where('authorId','==',user.uid).where('targetId','==',targetId).get();
+        return !snap.empty;
+    }
+
+    function openPublicProfileFromChat() {
+        if(chatTargetUid && !isSupportMode) {
+            closeModal('modal-chat');
+            showPublicProfile(chatTargetUid);
+        }
+    }
+
+    function openChatWindow(chatId, title, targetUid, isSupport, avatarUrl = '') {
         currentChatId = chatId;
         chatTargetUid = targetUid;
+        chatTargetName = title;
         isSupportMode = isSupport;
         document.getElementById('chat-with-name').innerText = title;
+        document.getElementById('chat-dropdown').classList.remove('show');
+        
+        const avatarEl = document.getElementById('chat-with-avatar');
+        if(!isSupport && avatarUrl) {
+            avatarEl.src = avatarUrl;
+            avatarEl.style.display = 'block';
+        } else {
+            avatarEl.style.display = 'none';
+        }
+
         document.getElementById('btn-review').style.display = 'none';
         document.getElementById('chat-status').innerText = "";
         openModal('modal-chat');
         
         let msgRef = isSupport 
-            ? db.collection('support').orderBy('time') // Админ видит всё, юзер фильтрует у себя
+            ? db.collection('support').orderBy('time') 
             : db.collection('chats').doc(currentChatId).collection('messages').orderBy('time');
 
-        // Отписываемся от старого чата если был
         if(window.currentChatListener) window.currentChatListener();
 
-        // Если это обычный чат, проверяем статус (блокировки и тд)
         if(!isSupport) {
             db.collection('chat_list').doc(chatId).onSnapshot(s => {
                 if(!s.exists) { closeModal('modal-chat'); alert("Чат удален."); return; }
@@ -492,19 +717,15 @@
             });
         }
 
-        window.currentChatListener = msgRef.onSnapshot(snap => {
+        window.currentChatListener = msgRef.onSnapshot(async snap => {
             let h = '';
             let count = 0;
             snap.forEach(m => {
                 const d = m.data();
-                
-                // Фильтрация для поддержки
                 if(isSupportMode) {
                     if(user.email !== ADMIN_ID) {
-                        // Обычный юзер видит только свои сообщения и ответы админа ему
                         if(d.uid !== user.uid && d.targetUid !== user.uid) return;
                     } else {
-                        // Админ пополняет карту имен
                         if(d.uid) supportNameMap[d.name] = d.uid;
                     }
                 }
@@ -514,7 +735,7 @@
                 
                 let nameTag = '';
                 if(isSupportMode && user.email === ADMIN_ID && !isMe) {
-                    nameTag = `<div class="m-name">${d.name}</div>`;
+                    nameTag = `<div class="m-name">${d.name} (${d.uid})</div>`;
                 }
 
                 h += `<div class="m ${isMe ? 'my' : 'other'}">${nameTag}${d.text}</div>`;
@@ -525,11 +746,16 @@
             box.scrollTop = box.scrollHeight;
             currentChatMsgCount = count;
 
-            // Логика кнопки "Оставить отзыв" (только в обычных чатах)
             if(!isSupportMode && count >= 10 && user.email !== ADMIN_ID) {
-                document.getElementById('btn-review').style.display = 'block';
+                let hasRev = await checkIfReviewed(chatTargetUid);
+                if(!hasRev) document.getElementById('btn-review').style.display = 'block';
+                else document.getElementById('btn-review').style.display = 'none';
             }
         });
+    }
+
+    function toggleDropdown() {
+        document.getElementById('chat-dropdown').classList.toggle('show');
     }
 
     async function sendChatMessage() {
@@ -539,13 +765,12 @@
 
         if(isSupportMode) {
             if(user.email === ADMIN_ID) {
-                // Логика ответа Админа через @Ник
                 let match = text.match(/^@([^\s]+)\s+(.*)$/);
                 if(match) {
                     let tName = match[1];
                     let msgText = match[2];
                     let tUid = supportNameMap[tName];
-                    if(!tUid) { alert("Пользователь с ником " + tName + " не найден в логах поддержки."); return; }
+                    if(!tUid) { alert("Пользователь не найден."); return; }
                     
                     await db.collection('support').add({
                         text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
@@ -554,7 +779,6 @@
                     alert("Формат ответа: @Ник Ваш текст"); return;
                 }
             } else {
-                // Юзер пишет в поддержку
                 await db.collection('support').add({
                     text: text, uid: user.uid, name: userData.name, time: new Date()
                 });
@@ -570,192 +794,255 @@
     }
 
     function loadChatsList() {
-        db.collection('chat_list').where('participants', 'array-contains', user.uid)
-          .onSnapshot(async snap => {
-            let chats = [];
-            let hasUnread = false;
-            
-            for(let doc of snap.docs) {
-                let d = doc.data();
-                let otherId = d.participants.find(p => p !== user.uid);
-                // Получаем актуальное имя (можно оптимизировать кешем, но для простоты запросим)
-                let otherDoc = await db.collection('users').doc(otherId).get();
-                let otherName = otherDoc.exists ? otherDoc.data().name : "Неизвестен";
-                let otherAva = otherDoc.exists ? otherDoc.data().avatar : "";
-                
-                let isPinned = d.pinned && d.pinned[user.uid];
-                let isMuted = d.muted && d.muted[user.uid];
-                
-                // Простая эмуляция уведомлений: если чат обновился и не заглушен (в реале нужна проверка кто писал последний)
-                if(!isMuted) hasUnread = true; 
-
-                chats.push({ id: doc.id, otherId, otherName, otherAva, isPinned, isMuted, lastUpdate: d.lastUpdate });
-            }
-
-            // Сортировка: закрепленные сверху, затем по времени
-            chats.sort((a,b) => {
-                if(a.isPinned === b.isPinned) return b.lastUpdate - a.lastUpdate;
-                return a.isPinned ? -1 : 1;
-            });
-
-            document.getElementById('chat-badge').style.display = hasUnread ? 'block' : 'none';
-
+        if(!user) return;
+        db.collection('chat_list').where('participants', 'array-contains', user.uid).onSnapshot(async snap => {
             let h = '';
-            chats.forEach(c => {
-                let pinHtml = c.isPinned ? '📌 ' : '';
-                let muteHtml = c.isMuted ? ' 🔕' : '';
+            for(let docSnap of snap.docs) {
+                let d = docSnap.data();
+                let otherId = d.participants.find(id => id !== user.uid);
+                let uDoc = await db.collection('users').doc(otherId).get();
+                let uName = uDoc.exists ? uDoc.data().name : "Неизвестный";
+                let uAva = uDoc.exists ? uDoc.data().avatar : "";
+                
                 h += `
-                <div class="chat-list-item ${c.isPinned ? 'pinned' : ''}" onclick="openChatWindow('${c.id}', '${c.otherName}', '${c.otherId}', false)">
-                    <img class="chat-avatar" src="${c.otherAva}">
-                    <div style="flex:1;">
-                        <b>${pinHtml}${c.otherName}${muteHtml}</b>
-                    </div>
+                <div class="chat-list-item" onclick="openChatWindow('${docSnap.id}', '${uName}', '${otherId}', false, '${uAva}')">
+                    <img class="chat-avatar" src="${uAva || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
+                    <div><b>${uName}</b></div>
                 </div>`;
-            });
-            document.getElementById('user-chats-list').innerHTML = h || '<p style="color:var(--gray);">Нет диалогов</p>';
-        });
-    }
-
-    // Служба поддержки открытие
-    function openSupport() {
-        openChatWindow('support_global', user.email === ADMIN_ID ? 'Панель поддержки (Писать: @Ник текст)' : 'Служба поддержки', null, true);
-    }
-
-    // Меню 3 точек
-    function toggleDropdown() { document.getElementById('chat-dropdown').classList.toggle('show'); }
-    window.onclick = function(e) { if(!e.target.matches('.chat-header div[onclick="toggleDropdown()"]')) { document.getElementById('chat-dropdown').classList.remove('show'); } }
-
-    async function actionChat(type) {
-        if(isSupportMode) { alert("В поддержке это недоступно."); return; }
-        const ref = db.collection('chat_list').doc(currentChatId);
-        if(type === 'delete') {
-            if(confirm("Удалить этот чат у обоих навсегда?")) {
-                await ref.delete(); closeModal('modal-chat');
             }
-        } else if(type === 'block') {
-            await ref.update({ blocked: !currentChatBlocked });
-        } else if(type === 'pin') {
-            const doc = await ref.get();
-            let pinned = doc.data().pinned || {};
-            pinned[user.uid] = !pinned[user.uid];
-            await ref.update({ pinned });
-        } else if(type === 'mute') {
-            const doc = await ref.get();
-            let muted = doc.data().muted || {};
-            muted[user.uid] = !muted[user.uid];
-            await ref.update({ muted });
-        }
-        document.getElementById('chat-dropdown').classList.remove('show');
+            document.getElementById('user-chats-list').innerHTML = h || '<p>Нет активных диалогов</p>';
+        });
     }
 
     // --- ОТЗЫВЫ ---
-    function openReviewModal() { openModal('modal-review'); selectedStars = 0; setStar(0); document.getElementById('review-text').value = ''; }
+    function openReviewModal() {
+        selectedStars = 0;
+        document.querySelectorAll('#review-stars span').forEach(s => s.classList.remove('active'));
+        document.getElementById('review-text').value = '';
+        openModal('modal-review');
+    }
+
     function setStar(n) {
         selectedStars = n;
-        let spans = document.getElementById('review-stars').getElementsByTagName('span');
-        for(let i=0; i<5; i++) { spans[i].className = i < n ? 'active' : ''; }
+        document.querySelectorAll('#review-stars span').forEach((s, i) => {
+            if(i < n) s.classList.add('active'); else s.classList.remove('active');
+        });
     }
+
     async function submitReview() {
         if(selectedStars === 0) { alert("Выберите оценку!"); return; }
         const text = document.getElementById('review-text').value;
-        const status = document.getElementById('review-status').value;
-        
-        await db.collection('reviews').add({
-            fromUid: user.uid, fromName: userData.name,
-            toUid: chatTargetUid, stars: selectedStars, dealStatus: status,
-            text: text, status: 'pending', time: new Date()
+        const reason = document.getElementById('review-status').value;
+
+        // Транзакция для безопасного обновления рейтинга
+        const targetRef = db.collection('users').doc(chatTargetUid);
+        await db.runTransaction(async (t) => {
+            const doc = await t.get(targetRef);
+            if(!doc.exists) throw "User missing";
+            let d = doc.data();
+            let newSum = (d.ratingSum || 0) + selectedStars;
+            let newCount = (d.reviewCount || 0) + 1;
+            t.update(targetRef, { ratingSum: newSum, reviewCount: newCount });
         });
-        alert("Отзыв отправлен на проверку модератору.");
+
+        await db.collection('reviews').add({
+            authorId: user.uid, authorName: userData.name,
+            targetId: chatTargetUid,
+            rating: selectedStars, text: text, reason: reason,
+            time: new Date()
+        });
+
+        alert("Отзыв успешно отправлен!");
+        document.getElementById('btn-review').style.display = 'none';
         closeModal('modal-review');
     }
 
-    // --- МОДЕРАЦИЯ (АДМИН) ---
-    function initAdminMod() {
-        // Модерация Аватарок
-        db.collection('users').where('pendingAva','!=',null).onSnapshot(snap => {
+    function openReviewsList(uid) {
+        openModal('modal-reviews-list');
+        document.getElementById('reviews-list-container').innerHTML = 'Загрузка...';
+        
+        db.collection('reviews').where('targetId', '==', uid).get().then(snap => {
             let h = '';
-            snap.forEach(d => {
-                const u = d.data();
-                if(u.pendingAva) {
-                    h += `
-                    <div class="mod-card">
-                        <div>Аватар пользователя <b>${u.name}</b></div>
-                        <img src="${u.pendingAva}" width="100" style="margin:10px 0; border-radius:50%; border:2px solid var(--blue);">
-                        <br>
-                        <button class="btn btn-green" style="width:auto; padding:8px 15px;" onclick="approveAva('${d.id}','${u.pendingAva}')">Одобрить</button>
-                        <button class="btn btn-red" style="width:auto; padding:8px 15px;" onclick="rejectAva('${d.id}')">Отклонить</button>
-                    </div>`;
+            snap.forEach(doc => {
+                let r = doc.data();
+                let stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                h += `
+                <div class="review-item">
+                    <div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}')">⋮</div>
+                    <div style="color:#ff9500; font-size:18px;">${stars}</div>
+                    <b>${r.authorName}</b> <small style="color:var(--gray);">(${r.reason})</small>
+                    <p style="margin:5px 0;">${r.text}</p>
+                </div>`;
+            });
+            document.getElementById('reviews-list-container').innerHTML = h || '<p>Отзывов пока нет.</p>';
+        });
+    }
+
+    // --- ЖАЛОБЫ (ПОЛЬЗОВАТЕЛЬ И ОТЗЫВ) ---
+    function openReportUserModal() {
+        document.getElementById('chat-dropdown').classList.remove('show');
+        document.getElementById('report-user-target-name').innerText = chatTargetName;
+        document.getElementById('report-user-reason').value = '';
+        openModal('modal-report-user');
+    }
+
+    async function submitUserReport() {
+        let reason = document.getElementById('report-user-reason').value.trim();
+        if(!reason) return alert("Укажите причину!");
+        
+        await db.collection('reports_user').add({
+            reporterId: user.uid, reporterName: userData.name,
+            reportedId: chatTargetUid, reportedName: chatTargetName,
+            reason: reason, time: new Date(), status: 'new'
+        });
+        alert("Жалоба отправлена модератору!");
+        closeModal('modal-report-user');
+    }
+
+    function openReportReviewModal(revId) {
+        reviewReportTargetId = revId;
+        document.getElementById('report-review-reason').value = '';
+        document.getElementById('report-review-photos').value = '';
+        openModal('modal-report-review');
+    }
+
+    async function submitReviewReport() {
+        let btn = document.getElementById('btn-send-review-report');
+        let reason = document.getElementById('report-review-reason').value.trim();
+        if(!reason) return alert("Укажите причину!");
+        
+        btn.disabled = true; btn.innerText = "Отправка...";
+        let files = document.getElementById('report-review-photos').files;
+        let urls = [];
+        for(let f of files) urls.push(await upImg(f));
+
+        await db.collection('reports_review').add({
+            reporterId: user.uid, reviewId: reviewReportTargetId,
+            reason: reason, photos: urls, time: new Date(), status: 'new'
+        });
+        
+        alert("Заявка на удаление отзыва отправлена!");
+        btn.disabled = false; btn.innerText = "Отправить жалобу";
+        closeModal('modal-report-review');
+    }
+
+    // --- АДМИН ПАНЕЛЬ ---
+    function initAdminMod() {
+        // Загрузка аватарок
+        db.collection('users').where('pendingAva', '!=', null).onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                h += `<div class="mod-card">
+                    <b>${d.name}</b><br><img src="${d.pendingAva}" style="height:100px; margin:10px 0; border-radius:50%;">
+                    <br><button class="btn btn-blue" onclick="approveAva('${doc.id}', '${d.pendingAva}')">✅ Одобрить</button>
+                    <button class="btn btn-red" onclick="rejectAva('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
+                </div>`;
+            });
+            document.getElementById('mod-avas').innerHTML = h || 'Нет фото на проверке';
+        });
+
+        // Загрузка объявлений
+        db.collection('ads').where('status', '==', 'pending').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                let imgs = d.photos.map(p => `<img src="${p}">`).join('');
+                h += `<div class="mod-card">
+                    <b>${d.title}</b> (${d.price} ₽)<br>${d.desc}<br>
+                    <div class="mod-gallery">${imgs}</div>
+                    <button class="btn btn-blue" onclick="db.collection('ads').doc('${doc.id}').update({status:'active'})">✅ Одобрить</button>
+                    <button class="btn btn-red" onclick="db.collection('ads').doc('${doc.id}').update({status:'rejected'})" style="margin-top:5px;">❌ Отклонить</button>
+                </div>`;
+            });
+            document.getElementById('mod-ads').innerHTML = h || 'Нет объявлений на проверке';
+        });
+
+        // Загрузка жалоб на юзеров
+        db.collection('reports_user').where('status','==','new').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                h += `<div class="mod-card">
+                    <b style="color:var(--red);">Жалоба на: ${d.reportedName}</b><br>
+                    <small>UID нарушителя: ${d.reportedId}</small><br>
+                    <p>Причина: ${d.reason}</p>
+                    <small>От: ${d.reporterName}</small><br>
+                    <button class="btn" style="background:var(--gray); color:white; margin-top:10px;" onclick="db.collection('reports_user').doc('${doc.id}').update({status:'closed'})">Скрыть жалобу</button>
+                </div>`;
+            });
+            document.getElementById('mod-user-reports').innerHTML = h || 'Нет новых жалоб';
+        });
+
+        // Загрузка жалоб на отзывы
+        db.collection('reports_review').where('status','==','new').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                let imgs = d.photos.map(p => `<img src="${p}">`).join('');
+                h += `<div class="mod-card">
+                    <b>Жалоба на отзыв (ID: ${d.reviewId})</b><br>
+                    <p>Причина: ${d.reason}</p>
+                    <div class="mod-gallery">${imgs}</div>
+                    <button class="btn btn-red" onclick="adminDeleteReview('${d.reviewId}', '${doc.id}')">🗑️ Удалить отзыв</button>
+                    <button class="btn" onclick="db.collection('reports_review').doc('${doc.id}').update({status:'rejected'})" style="margin-top:5px;">Оставить отзыв</button>
+                </div>`;
+            });
+            document.getElementById('mod-review-reports').innerHTML = h || 'Нет заявок на удаление отзывов';
+        });
+    }
+
+    function approveAva(id, url) { db.collection('users').doc(id).update({ avatar: url, pendingAva: firebase.firestore.FieldValue.delete() }); }
+    function rejectAva(id) { db.collection('users').doc(id).update({ pendingAva: firebase.firestore.FieldValue.delete() }); }
+
+    // Админ: Бан / Варн
+    async function adminIssueWarning() {
+        let uid = document.getElementById('admin-target-uid').value.trim();
+        let reason = document.getElementById('admin-punish-reason').value.trim();
+        if(!uid || !reason) return alert("Введите UID и причину!");
+        await db.collection('users').doc(uid).update({ warned: true, warnReason: reason });
+        alert("Предупреждение выдано!");
+    }
+
+    async function adminBanUser() {
+        let uid = document.getElementById('admin-target-uid').value.trim();
+        let reason = document.getElementById('admin-punish-reason').value.trim();
+        if(!uid || !reason) return alert("Введите UID и причину!");
+        await db.collection('users').doc(uid).update({ 
+            banned: true, banReason: reason, 
+            name: "Удален", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" 
+        });
+        alert("Пользователь заблокирован!");
+    }
+
+    async function adminUnbanUser() {
+        let uid = document.getElementById('admin-target-uid').value.trim();
+        if(!uid) return alert("Введите UID!");
+        await db.collection('users').doc(uid).update({ banned: false, banReason: firebase.firestore.FieldValue.delete(), name: "Восстановлен" });
+        alert("Пользователь разбанен!");
+    }
+
+    // Админ: Удаление отзыва
+    async function adminDeleteReview(revId, reportId) {
+        const revDoc = await db.collection('reviews').doc(revId).get();
+        if(revDoc.exists) {
+            let r = revDoc.data();
+            const targetRef = db.collection('users').doc(r.targetId);
+            await db.runTransaction(async (t) => {
+                const doc = await t.get(targetRef);
+                if(doc.exists) {
+                    let d = doc.data();
+                    let newSum = Math.max(0, (d.ratingSum || 0) - r.rating);
+                    let newCount = Math.max(0, (d.reviewCount || 0) - 1);
+                    t.update(targetRef, { ratingSum: newSum, reviewCount: newCount });
                 }
             });
-            document.getElementById('mod-avas').innerHTML = h || '<p>Пусто</p>';
-        });
-
-        // Модерация Объявлений (ПОЛНЫЙ ВИД)
-        db.collection('ads').where('status','==','pending').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const ad = doc.data();
-                h += `
-                <div class="mod-card" style="border: 2px solid #ff9500;">
-                    <b>${ad.title}</b> — ${ad.price} ₽
-                    <p style="color:var(--gray); font-size:12px;">Категория: ${ad.cat} | Город: ${ad.loc}</p>
-                    <div class="mod-gallery">${ad.photos.map(p=>`<img src="${p}">`).join('')}</div>
-                    <div style="background:var(--bg); padding:10px; border-radius:8px; font-size:14px; margin-bottom:10px; white-space:pre-wrap;">${ad.desc}</div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-green" onclick="modAd('${doc.id}','active')">Одобрить объявление</button>
-                        <button class="btn btn-red" onclick="modAd('${doc.id}','rejected')">Удалить</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('mod-ads').innerHTML = h || '<p>Пусто</p>';
-        });
-
-        // Модерация Отзывов
-        db.collection('reviews').where('status','==','pending').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const r = doc.data();
-                h += `
-                <div class="mod-card">
-                    <b>От: ${r.fromName}</b> ➔ Продавцу: UID ${r.toUid}<br>
-                    <div style="color:#ff9500; font-size:20px;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
-                    <b>Статус:</b> ${r.dealStatus}<br>
-                    <b>Текст:</b> ${r.text}<br><br>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-green" onclick="approveReview('${doc.id}', '${r.toUid}', ${r.stars})">Пропустить в профиль</button>
-                        <button class="btn btn-red" onclick="rejectReview('${doc.id}')">Удалить отзыв</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('mod-reviews').innerHTML = h || '<p>Пусто</p>';
-        });
+            await db.collection('reviews').doc(revId).delete();
+        }
+        await db.collection('reports_review').doc(reportId).update({status: 'resolved'});
+        alert("Отзыв удален, рейтинг пересчитан!");
     }
 
-    function modAd(id, s) { db.collection('ads').doc(id).update({status: s}); }
-    async function approveAva(uid, url) { await db.collection('users').doc(uid).update({avatar: url, pendingAva: firebase.firestore.FieldValue.delete()}); }
-    async function rejectAva(uid) { await db.collection('users').doc(uid).update({pendingAva: firebase.firestore.FieldValue.delete()}); }
-    
-    async function approveReview(revId, targetUid, stars) {
-        await db.collection('reviews').doc(revId).update({status: 'approved'});
-        const uRef = db.collection('users').doc(targetUid);
-        await db.runTransaction(async (t) => {
-            const doc = await t.get(uRef);
-            let rs = (doc.data().ratingSum || 0) + stars;
-            let rc = (doc.data().reviewCount || 0) + 1;
-            t.update(uRef, { ratingSum: rs, reviewCount: rc });
-        });
-    }
-    function rejectReview(revId) { db.collection('reviews').doc(revId).delete(); }
-
-    // --- НАВИГАЦИЯ ---
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById('page-'+id).classList.add('active-page');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(id === 'profile') loadProfileAds();
-    }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
 </body>
 </html>
