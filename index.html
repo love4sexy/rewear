@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO 2.0 — Твой маркетплейс</title>
+    <title>YAVITO 4.0 — Финал</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -21,7 +21,6 @@
         header { background: var(--card); padding: 12px 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .head-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .logo { font-size: 24px; font-weight: 900; color: var(--blue); cursor: pointer; letter-spacing: -1px; }
-        .search-container { position: relative; width: 100%; }
         .search-container input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; font-size: 16px; }
 
         /* NAV */
@@ -37,26 +36,32 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 15px; }
         
         /* CARD */
-        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; }
-        .card:hover { transform: translateY(-3px); }
+        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 170px; object-fit: cover; background: #eee; }
         .card-body { padding: 12px; }
         .price { font-size: 18px; font-weight: 800; color: var(--text); }
 
-        /* ADMIN MODERATION */
-        .admin-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
-        .mod-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        /* MODERATION & ADMIN */
+        .admin-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 15px; padding: 15px; margin-bottom: 20px; color: #856404; }
+        .mod-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 10px; color: var(--text); }
         .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
         .mod-gallery img { height: 80px; border-radius: 5px; }
 
+        /* CHATS LIST */
+        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .chat-list-item:hover { background: var(--bg); transform: scale(0.99); }
+        .chat-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; flex-shrink: 0; }
+
         /* AD VIEW */
-        .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; }
+        .ad-full { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
         .gallery-main { display: flex; overflow-x: auto; snap-type: x mandatory; background: #000; height: 350px; }
         .gallery-main img { flex: 0 0 100%; object-fit: contain; snap-align: start; }
         .ad-details { padding: 20px; }
 
         /* BUTTONS */
         .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; }
+        .btn:active { transform: scale(0.97); }
         .btn-blue { background: var(--blue); color: white; }
         .btn-red { background: #ffe5e5; color: var(--red); }
         .btn-green { background: var(--green); color: white; }
@@ -65,11 +70,11 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
         .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 25px; border-radius: 25px; max-height: 90vh; overflow-y: auto; }
 
-        /* CHAT */
-        .chat-area { height: 300px; overflow-y: auto; background: var(--bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .m { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        /* CHAT WINDOW */
+        .chat-area { height: 350px; overflow-y: auto; background: var(--bg); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .m { padding: 10px 14px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
         .m.my { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 4px; }
-        .m.other { align-self: flex-start; background: var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+        .m.other { align-self: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
         
         input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
 
@@ -104,27 +109,40 @@
 </div>
 
 <div id="page-view" class="page">
-    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад к поиску</button>
+    <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer; font-size: 16px;">← Назад к поиску</button>
     <div id="ad-full-content" class="ad-full"></div>
 </div>
 
 <div id="page-chats" class="page">
     <h2>Сообщения</h2>
-    <div class="mod-card" onclick="openSupport()" style="border-left: 5px solid var(--blue); cursor:pointer;">
-        <b>🆘 Служба поддержки</b><br><small>Мы всегда на связи</small>
+    
+    <div class="chat-list-item" onclick="openSupport()" style="border-left: 5px solid #ff9500;">
+        <div class="chat-avatar" style="background: #ff9500;">🆘</div>
+        <div>
+            <b>Служба поддержки</b><br>
+            <small style="color:var(--gray);">Написать администратору</small>
+        </div>
     </div>
-    <div id="chats-list-container"></div>
+
+    <div id="admin-support-chats" style="display:none; margin-bottom: 20px;">
+        <h3 style="color:var(--red);">🚨 Запросы в поддержку:</h3>
+        <div id="support-tickets-list"></div>
+        <hr style="opacity:0.2;">
+    </div>
+
+    <h3>Ваши диалоги:</h3>
+    <div id="user-chats-list">Загрузка чатов...</div>
 </div>
 
 <div id="page-profile" class="page">
     <div style="text-align:center;">
         <label>
-            <img id="u-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue);">
+            <img id="u-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue); cursor:pointer;">
             <input type="file" id="ava-file" style="display:none" onchange="uploadNewAvatar(this)">
         </label>
         <div id="ava-status" style="font-size:12px; color:var(--gray); margin-top:5px;"></div>
         <h2 id="u-name" style="margin:10px 0;">...</h2>
-        <button class="btn" style="width:auto; padding:5px 15px; font-size:12px;" onclick="changeName()">Сменить имя</button>
+        <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block;" onclick="changeName()">Сменить имя</button>
         <div style="margin-top:15px; font-weight:bold; color:#ff9500;">⭐ 0.0 (0 отзывов)</div>
     </div>
     <hr style="margin:25px 0; opacity:0.1;">
@@ -136,9 +154,8 @@
 <div id="modal-post" class="modal">
     <div class="modal-content">
         <h2>Новое объявление</h2>
-        <p style="font-size:12px; color:var(--gray);">Можно выбрать несколько фото сразу</p>
         <input type="file" id="post-images" multiple accept="image/*">
-        <input type="text" id="post-title" placeholder="Название (например: Rick Owens Dunks)">
+        <input type="text" id="post-title" placeholder="Название">
         <input type="number" id="post-price" placeholder="Цена (₽)">
         <select id="post-cat">
             <option value="Одежда">Одежда / Обувь</option>
@@ -147,21 +164,21 @@
             <option value="Другое">Другое</option>
         </select>
         <input type="text" id="post-loc" placeholder="Город">
-        <textarea id="post-desc" rows="5" placeholder="Описание товара, состояние..."></textarea>
+        <textarea id="post-desc" rows="5" placeholder="Описание товара..."></textarea>
         <button class="btn btn-blue" id="sendAdBtn" onclick="submitAd()">Опубликовать</button>
         <button class="btn" onclick="closeModal('modal-post')" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
 
 <div id="modal-chat" class="modal">
-    <div class="modal-content" style="padding:15px;">
-        <h3 id="chat-with-name">Чат</h3>
+    <div class="modal-content" style="padding:15px; display:flex; flex-direction:column;">
+        <h3 id="chat-with-name" style="margin-top:0;">Чат</h3>
         <div id="chat-messages" class="chat-area"></div>
         <div style="display:flex; gap:8px; margin-top:15px;">
-            <input type="text" id="msg-input" placeholder="Сообщение..." style="margin:0;">
+            <input type="text" id="msg-input" placeholder="Введите сообщение..." style="margin:0; flex:1;">
             <button class="btn btn-blue" style="width:60px; margin:0;" onclick="sendChatMessage()">➤</button>
         </div>
-        <button class="btn" onclick="closeModal('modal-chat')" style="margin-top:10px;">Закрыть</button>
+        <button class="btn btn-red" onclick="closeModal('modal-chat')" style="margin-top:10px;">Закрыть чат</button>
     </div>
 </div>
 
@@ -189,18 +206,21 @@
     const db = firebase.firestore();
 
     let user = null;
-    let currentChat = null;
+    let currentChatId = null;
     let rawAds = [];
 
-    // --- СИСТЕМА ---
+    // --- АВТОРИЗАЦИЯ ---
     auth.onAuthStateChanged(u => {
         if(u) {
             user = u;
             checkUser();
             loadFeed();
+            loadChatsList();
             if(u.email === ADMIN_ID) {
                 document.getElementById('admin-zone').style.display = 'block';
+                document.getElementById('admin-support-chats').style.display = 'block';
                 initAdmin();
+                loadAdminSupportTickets();
             }
         } else {
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -212,15 +232,14 @@
         if(!doc.exists) {
             await db.collection('users').doc(user.uid).set({
                 name: user.displayName,
-                avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                joined: new Date().toLocaleDateString()
+                avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
             });
         }
         db.collection('users').doc(user.uid).onSnapshot(s => {
             const d = s.data();
-            document.getElementById('u-name').innerText = d.name;
+            document.getElementById('u-name').innerText = d.name || 'Пользователь';
             document.getElementById('u-avatar').src = d.avatar;
-            document.getElementById('ava-status').innerText = d.pendingAva ? "⌛ Фото на проверке" : "";
+            document.getElementById('ava-status').innerText = d.pendingAva ? "⌛ Фото на проверке у админа" : "";
         });
     }
 
@@ -230,7 +249,6 @@
     }
     if(localStorage.getItem('yv_theme') === 'dark') document.body.classList.add('dark');
 
-    // --- ФОТО ХОСТИНГ ---
     async function upImg(file) {
         let fd = new FormData(); fd.append("image", file);
         let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
@@ -258,7 +276,7 @@
             status: 'pending',
             time: new Date()
         });
-        alert("Успешно! Объявление появится после проверки.");
+        alert("Объявление отправлено на модерацию!");
         location.reload();
     }
 
@@ -266,7 +284,6 @@
         db.collection('ads').where('status','==','active').onSnapshot(snap => {
             rawAds = [];
             snap.forEach(d => rawAds.push({id: d.id, ...d.data()}));
-            // Рандомная сортировка
             renderAds(rawAds.sort(() => Math.random() - 0.5));
         });
     }
@@ -274,6 +291,7 @@
     function renderAds(arr) {
         let h = '';
         arr.forEach(ad => {
+            // onclick теперь вешается надежно на саму карточку
             h += `
             <div class="card" onclick="openAd('${ad.id}')">
                 <img src="${ad.photos[0] || ''}">
@@ -284,7 +302,7 @@
                 </div>
             </div>`;
         });
-        document.getElementById('ads-grid').innerHTML = h || 'Ничего нет :(';
+        document.getElementById('ads-grid').innerHTML = h || '<p>Ничего не найдено</p>';
     }
 
     async function openAd(id) {
@@ -300,15 +318,150 @@
                 <p style="color:var(--gray); margin-bottom:20px;">${ad.loc} • ${ad.cat}</p>
                 <div style="white-space:pre-wrap; line-height:1.5;">${ad.desc}</div>
                 <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px;">
-                    <div style="width:45px; height:45px; border-radius:50%; background:#eee; display:grid; place-items:center;">👤</div>
+                    <div style="width:45px; height:45px; border-radius:50%; background:#eee; display:grid; place-items:center; flex-shrink:0;">👤</div>
                     <div><b>${ad.authorName}</b><br><small>⭐ 0.0 (0 отзывов)</small></div>
                 </div>
-                <button class="btn btn-blue" style="margin-top:15px;" onclick="startChat('${ad.authorId}','${ad.title}')">Написать продавцу</button>
+                <button class="btn btn-blue" style="margin-top:15px;" onclick="startNewChat('${ad.authorId}', '${ad.authorName}')">Написать продавцу</button>
             </div>
         `;
     }
 
-    // --- МОДЕРАЦИЯ ---
+    // --- НОВАЯ ПОЛНАЯ СИСТЕМА ЧАТОВ ---
+    function openSupport() {
+        startNewChat("ADMIN_SUPPORT", "Служба поддержки");
+    }
+
+    // Функция начала НОВОГО чата (из карточки товара)
+    async function startNewChat(otherId, otherName) {
+        if(otherId === user.uid) { alert("Это ваше объявление, вы не можете написать сами себе."); return; }
+        
+        let isSupport = otherId === "ADMIN_SUPPORT";
+        let chatId = isSupport ? `support_${user.uid}` : [user.uid, otherId].sort().join("_");
+        
+        // Регистрируем чат в базе, чтобы он появился в списках!
+        await db.collection('chat_list').doc(chatId).set({
+            participants: isSupport ? [user.uid, "ADMIN"] : [user.uid, otherId],
+            name1: user.displayName || "Пользователь",
+            name2: otherName,
+            lastUpdate: new Date(),
+            isSupport: isSupport
+        }, {merge: true});
+
+        openChatWindow(chatId, otherName);
+    }
+
+    // Функция открытия СУЩЕСТВУЮЩЕГО чата (из списка)
+    function openChatWindow(chatId, title) {
+        currentChatId = chatId;
+        document.getElementById('chat-with-name').innerText = title;
+        openModal('modal-chat');
+        
+        // Читаем сообщения
+        db.collection('chats').doc(currentChatId).collection('messages').orderBy('time').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(m => {
+                const d = m.data();
+                const isMe = d.senderId === user.uid;
+                h += `<div class="m ${isMe ? 'my' : 'other'}">${d.text}</div>`;
+            });
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = h;
+            box.scrollTop = box.scrollHeight; // Скролл вниз
+        });
+    }
+
+    // Отправка сообщения
+    async function sendChatMessage() {
+        const inp = document.getElementById('msg-input');
+        const text = inp.value.trim();
+        if(!text) return;
+        
+        // Пишем само сообщение
+        await db.collection('chats').doc(currentChatId).collection('messages').add({
+            text: text,
+            senderId: user.uid,
+            time: new Date()
+        });
+        
+        // Обновляем время в списке чатов, чтобы диалог прыгнул наверх
+        await db.collection('chat_list').doc(currentChatId).update({
+            lastUpdate: new Date()
+        });
+        
+        inp.value = '';
+    }
+
+    // Загрузка списка МОИХ чатов (вкладка "Чаты")
+    function loadChatsList() {
+        db.collection('chat_list').where('participants', 'array-contains', user.uid)
+          .orderBy('lastUpdate', 'desc').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                // Если это чат с поддержкой, пропускаем (он закреплен сверху жестко)
+                if(d.isSupport) return; 
+
+                // Определяем имя собеседника
+                let otherName = (d.name1 === user.displayName) ? d.name2 : d.name1;
+                
+                h += `
+                <div class="chat-list-item" onclick="openChatWindow('${doc.id}', '${otherName}')">
+                    <div class="chat-avatar">👤</div>
+                    <div><b>${otherName}</b></div>
+                </div>`;
+            });
+            document.getElementById('user-chats-list').innerHTML = h || '<p style="color:var(--gray);">У вас пока нет диалогов по объявлениям</p>';
+        });
+    }
+
+    // Загрузка тикетов в поддержку (ТОЛЬКО ДЛЯ АДМИНА)
+    function loadAdminSupportTickets() {
+        db.collection('chat_list').where('participants', 'array-contains', 'ADMIN')
+          .orderBy('lastUpdate', 'desc').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                h += `
+                <div class="chat-list-item" onclick="openChatWindow('${doc.id}', 'Поддержка: ${d.name1}')" style="border-left: 3px solid var(--red);">
+                    <div class="chat-avatar" style="background:var(--red);">🆘</div>
+                    <div><b>От: ${d.name1}</b></div>
+                </div>`;
+            });
+            document.getElementById('support-tickets-list').innerHTML = h || '<p>Тикетов нет</p>';
+        });
+    }
+
+    // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
+    async function uploadNewAvatar(input) {
+        const url = await upImg(input.files[0]);
+        await db.collection('users').doc(user.uid).update({pendingAva: url});
+        alert("Фото отправлено модератору на проверку!");
+    }
+
+    function loadProfile() {
+        db.collection('ads').where('authorId','==',user.uid).onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Удалено');
+                let clr = ad.status === 'active' ? 'var(--text)' : (ad.status === 'pending' ? '#ff9500' : 'red');
+                h += `
+                <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                        <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
+                    </div>
+                    <button class="btn btn-red" style="width:40px; padding:8px;" onclick="deleteMyAd('${doc.id}')">🗑️</button>
+                </div>`;
+            });
+            document.getElementById('my-ads-container').innerHTML = h || '<p>У вас пока нет товаров</p>';
+        });
+    }
+
+    function deleteMyAd(id) { if(confirm("Удалить объявление навсегда?")) db.collection('ads').doc(id).delete(); }
+    function changeName() { let n = prompt("Введите новое имя:"); if(n) db.collection('users').doc(user.uid).update({name: n}); }
+
+    // --- МОДЕРАЦИЯ (АДМИН) ---
     function initAdmin() {
         db.collection('ads').where('status','==','pending').onSnapshot(snap => {
             let h = '<b>Очередь объявлений:</b><br>';
@@ -334,8 +487,8 @@
                 if(u.pendingAva) {
                     let div = document.createElement('div');
                     div.className = "mod-card";
-                    div.innerHTML = `Аватар ${u.name}: <img src="${u.pendingAva}" width="50"><br>
-                    <button onclick="approveAva('${d.id}','${u.pendingAva}')">✅</button>`;
+                    div.innerHTML = `Аватар пользователя <b>${u.name}</b>: <br><img src="${u.pendingAva}" width="80" style="margin:10px 0; border-radius:50%;"><br>
+                    <button class="btn btn-green" style="width:auto; padding:5px 15px;" onclick="approveAva('${d.id}','${u.pendingAva}')">Одобрить фото</button>`;
                     document.getElementById('mod-items-container').appendChild(div);
                 }
             });
@@ -346,70 +499,12 @@
         await db.collection('users').doc(uid).update({avatar: url, pendingAva: firebase.firestore.FieldValue.delete()}); 
     }
 
-    // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
-    async function uploadNewAvatar(input) {
-        const url = await upImg(input.files[0]);
-        await db.collection('users').doc(user.uid).update({pendingAva: url});
-        alert("Фото отправлено админу!");
-    }
-
-    function loadProfile() {
-        db.collection('ads').where('authorId','==',user.uid).onSnapshot(snap => {
-            let h = '';
-            snap.forEach(doc => {
-                const ad = doc.data();
-                let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Удалено');
-                let clr = ad.status === 'active' ? 'black' : (ad.status === 'pending' ? '#ff9500' : 'red');
-                h += `
-                <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
-                        <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
-                    </div>
-                    <button class="btn btn-red" style="width:40px; padding:8px;" onclick="deleteMyAd('${doc.id}')">🗑️</button>
-                </div>`;
-            });
-            document.getElementById('my-ads-container').innerHTML = h || 'У вас пока нет товаров';
-        });
-    }
-
-    function deleteMyAd(id) { if(confirm("Удалить объявление?")) db.collection('ads').doc(id).delete(); }
-    function changeName() { let n = prompt("Новое имя:"); if(n) db.collection('users').doc(user.uid).update({name: n}); }
-
     // --- ПОИСК ---
     function runSearch() {
         const q = document.getElementById('mainSearch').value.toLowerCase();
         const filtered = rawAds.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
-        document.getElementById('feed-title').innerText = q ? `Результаты по запросу "${q}"` : "Рекомендации";
+        document.getElementById('feed-title').innerText = q ? `Результаты: ${q}` : "Рекомендации";
         renderAds(filtered);
-    }
-
-    // --- ЧАТЫ ---
-    function openSupport() { startChat("SUPPORT_ADMIN", "Служба поддержки"); }
-    function startChat(otherId, name) {
-        if(otherId === user.uid) return;
-        currentChat = [user.uid, otherId].sort().join("_");
-        document.getElementById('chat-with-name').innerText = name;
-        openModal('modal-chat');
-        listenMsgs();
-    }
-    function listenMsgs() {
-        db.collection('chats').doc(currentChat).collection('messages').orderBy('time').onSnapshot(snap => {
-            let h = '';
-            snap.forEach(m => {
-                const d = m.data();
-                h += `<div class="m ${d.senderId === user.uid ? 'my' : 'other'}">${d.text}</div>`;
-            });
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = h; box.scrollTop = box.scrollHeight;
-        });
-    }
-    async function sendChatMessage() {
-        const i = document.getElementById('msg-input'); if(!i.value) return;
-        await db.collection('chats').doc(currentChat).collection('messages').add({
-            text: i.value, senderId: user.uid, time: new Date()
-        });
-        i.value = '';
     }
 
     // --- ИНТЕРФЕЙС ---
