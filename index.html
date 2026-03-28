@@ -132,6 +132,7 @@
     <div style="text-align:center; margin-top: 10px;">
         <img id="pub-avatar" src="" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border: 3px solid var(--blue);">
         <h2 id="pub-name" style="margin:10px 0;">...</h2>
+        <small id="pub-uid" style="color:var(--gray);"></small><br>
         <div id="pub-rating" style="margin-top:5px; font-weight:bold; color:#ff9500; font-size:18px; cursor:pointer; text-decoration: underline;" onclick="openReviewsList(currentPublicUid)">⭐ 0.0 (0 отзывов)</div>
     </div>
     <hr style="margin:25px 0; opacity:0.1;">
@@ -160,7 +161,8 @@
         </label>
         <div id="ava-status" style="font-size:12px; color:#ff9500; margin-top:5px; font-weight:bold;"></div>
         <h2 id="u-name" style="margin:10px 0;">...</h2>
-        <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block;" onclick="changeName()">Сменить имя</button>
+        <small id="my-uid-label" style="color:var(--gray);"></small><br>
+        <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block; margin-top:5px;" onclick="changeName()">Сменить имя</button>
         <div id="u-rating" style="margin-top:15px; font-weight:bold; color:#ff9500; font-size:18px; cursor:pointer; text-decoration: underline;" onclick="openReviewsList(user.uid)">⭐ 0.0 (0 отзывов)</div>
     </div>
     <hr style="margin:25px 0; opacity:0.1;">
@@ -176,15 +178,23 @@
     <div class="admin-section">
         <h3 style="color: var(--red); margin-top:0;">Управление пользователями</h3>
         <input type="text" id="admin-target-uid" placeholder="Введите UID пользователя...">
-        <input type="text" id="admin-punish-reason" placeholder="Причина (обязательно)...">
+        <input type="text" id="admin-punish-reason" placeholder="Причина наказания (обязательно)...">
         <div style="display:flex; gap:10px; margin-top:10px;">
             <button class="btn btn-blue" style="background:#ff9500;" onclick="adminIssueWarning()">Выдать варн</button>
             <button class="btn btn-red" style="background:var(--red); color:white;" onclick="adminBanUser()">Заблокировать</button>
             <button class="btn" onclick="adminUnbanUser()">Разбанить</button>
         </div>
+        <button class="btn btn-blue" style="margin-top:10px;" onclick="adminViewUserChats()">Посмотреть диалоги пользователя</button>
+    </div>
+
+    <div class="admin-section" id="admin-chats-view" style="display:none;">
+        <h3 style="margin-top:0;">Диалоги пользователя (UID: <span id="admin-watch-uid"></span>)</h3>
+        <div id="admin-user-chats-list"></div>
+        <button class="btn" onclick="document.getElementById('admin-chats-view').style.display='none'">Свернуть</button>
     </div>
 
     <div class="admin-section"><h3>Жалобы на пользователей</h3><div id="mod-user-reports"></div></div>
+    <div class="admin-section"><h3>Новые отзывы на проверку</h3><div id="mod-reviews-verify"></div></div>
     <div class="admin-section"><h3>Жалобы на отзывы</h3><div id="mod-review-reports"></div></div>
     <div class="admin-section"><h3>Фото профилей</h3><div id="mod-avas"></div></div>
     <div class="admin-section"><h3>Объявления</h3><div id="mod-ads"></div></div>
@@ -255,8 +265,8 @@
             <option value="Мошенничество">Обман / Мошенничество</option>
             <option value="Товар с дефектом">Товар с дефектом</option>
         </select>
-        <textarea id="review-text" rows="4" placeholder="Напишите подробнее (например: разбитый экран, отличный продавец)..."></textarea>
-        <button class="btn btn-blue" onclick="submitReview()">Отправить отзыв</button>
+        <textarea id="review-text" rows="4" placeholder="Напишите подробнее..."></textarea>
+        <button class="btn btn-blue" onclick="submitReview()">Отправить на проверку</button>
         <button class="btn" onclick="closeModal('modal-review')" style="margin-top:10px;">Отмена</button>
     </div>
 </div>
@@ -271,9 +281,9 @@
 
 <div id="modal-report-review" class="modal">
     <div class="modal-content">
-        <h2>Почему вы хотите удалить отзыв?</h2>
+        <h2>Жалоба на отзыв</h2>
         <textarea id="report-review-reason" rows="4" placeholder="Укажите причину (обязательно)..."></textarea>
-        <p style="margin-bottom: 5px;">Прикрепить фото (доказательства):</p>
+        <p style="margin-bottom: 5px;">Прикрепить фото:</p>
         <input type="file" id="report-review-photos" multiple accept="image/*">
         <button class="btn btn-blue" id="btn-send-review-report" style="margin-top: 15px;" onclick="submitReviewReport()">Отправить жалобу</button>
         <button class="btn" onclick="closeModal('modal-report-review')" style="margin-top:10px;">Отмена</button>
@@ -305,7 +315,6 @@
         <h2 style="color: #ff9500;">Предупреждение от Модератора</h2>
         <p>Вы нарушили правила площадки.</p>
         <p>Причина: <b id="warn-reason-text">...</b></p>
-        <small style="color:var(--gray);">Повторные нарушения приведут к перманентной блокировке.</small>
         <button class="btn btn-blue" style="margin-top: 20px;" onclick="acceptWarning()">Понял</button>
     </div>
 </div>
@@ -399,11 +408,10 @@
             if(!s.exists) return;
             userData = s.data();
 
-            // ПРОВЕРКА НА БАН И ВАРН
             if(userData.banned) {
                 document.getElementById('ban-reason-text').innerText = userData.banReason || "Нарушение правил";
                 document.getElementById('modal-banned').style.display = 'flex';
-                return; // Блокируем дальнейшее выполнение UI профиля
+                return;
             } else {
                 document.getElementById('modal-banned').style.display = 'none';
             }
@@ -415,6 +423,7 @@
 
             document.getElementById('u-name').innerText = userData.name;
             document.getElementById('u-avatar').src = userData.avatar;
+            document.getElementById('my-uid-label').innerText = `Ваш UID: ${user.uid}`;
             document.getElementById('ava-status').innerText = userData.pendingAva ? "⌛ Фото на модерации" : "";
             
             let rCount = userData.reviewCount || 0;
@@ -489,9 +498,9 @@
         };
 
         if(editingAdId) {
-            if(urls.length > 0) adData.photos = urls; // Обновляем фото только если выбрали новые
+            if(urls.length > 0) adData.photos = urls; 
             await db.collection('ads').doc(editingAdId).update(adData);
-            alert("Изменения сохранены и отправлены на модерацию!");
+            alert("Изменения отправлены на модерацию!");
         } else {
             if(urls.length === 0) { alert("Добавьте хотя бы одно фото!"); btn.disabled = false; btn.innerText = "Опубликовать"; return; }
             adData.photos = urls;
@@ -586,6 +595,7 @@
         
         document.getElementById('pub-avatar').src = d.avatar;
         document.getElementById('pub-name').innerText = d.name;
+        document.getElementById('pub-uid').innerText = `UID: ${uid}`;
         let rAvg = d.reviewCount > 0 ? (d.ratingSum / d.reviewCount).toFixed(1) : "0.0";
         document.getElementById('pub-rating').innerText = `⭐ ${rAvg} (${d.reviewCount || 0} отзывов)`;
         
@@ -606,19 +616,6 @@
             });
             document.getElementById('pub-ads-container').innerHTML = h || '<p>Нет активных объявлений</p>';
         });
-    }
-
-    // --- ПРОФИЛЬ УПРАВЛЕНИЕ ---
-    async function uploadNewAvatar(input) {
-        if(input.files.length === 0) return;
-        const url = await upImg(input.files[0]);
-        await db.collection('users').doc(user.uid).update({pendingAva: url});
-        alert("Фото отправлено модератору на проверку!");
-    }
-
-    function changeName() { 
-        let n = prompt("Введите новое имя:"); 
-        if(n && n.trim().length > 0) db.collection('users').doc(user.uid).update({name: n.trim()}); 
     }
 
     function loadProfileAds() {
@@ -669,7 +666,8 @@
 
     async function checkIfReviewed(targetId) {
         const snap = await db.collection('reviews').where('authorId','==',user.uid).where('targetId','==',targetId).get();
-        return !snap.empty;
+        const snapMod = await db.collection('reviews_mod').where('authorId','==',user.uid).where('targetId','==',targetId).get();
+        return !snap.empty || !snapMod.empty;
     }
 
     function openPublicProfileFromChat() {
@@ -735,7 +733,7 @@
                 
                 let nameTag = '';
                 if(isSupportMode && user.email === ADMIN_ID && !isMe) {
-                    nameTag = `<div class="m-name">${d.name} (${d.uid})</div>`;
+                    nameTag = `<div class="m-name">${d.name} (UID: ${d.uid})</div>`;
                 }
 
                 h += `<div class="m ${isMe ? 'my' : 'other'}">${nameTag}${d.text}</div>`;
@@ -834,25 +832,15 @@
         const text = document.getElementById('review-text').value;
         const reason = document.getElementById('review-status').value;
 
-        // Транзакция для безопасного обновления рейтинга
-        const targetRef = db.collection('users').doc(chatTargetUid);
-        await db.runTransaction(async (t) => {
-            const doc = await t.get(targetRef);
-            if(!doc.exists) throw "User missing";
-            let d = doc.data();
-            let newSum = (d.ratingSum || 0) + selectedStars;
-            let newCount = (d.reviewCount || 0) + 1;
-            t.update(targetRef, { ratingSum: newSum, reviewCount: newCount });
-        });
-
-        await db.collection('reviews').add({
+        // Падает в модерацию
+        await db.collection('reviews_mod').add({
             authorId: user.uid, authorName: userData.name,
             targetId: chatTargetUid,
             rating: selectedStars, text: text, reason: reason,
             time: new Date()
         });
 
-        alert("Отзыв успешно отправлен!");
+        alert("Отзыв отправлен на проверку модератору!");
         document.getElementById('btn-review').style.display = 'none';
         closeModal('modal-review');
     }
@@ -868,9 +856,10 @@
                 let stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
                 h += `
                 <div class="review-item">
-                    <div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}')">⋮</div>
+                    <div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}', '${r.authorId}')">⋮</div>
                     <div style="color:#ff9500; font-size:18px;">${stars}</div>
-                    <b>${r.authorName}</b> <small style="color:var(--gray);">(${r.reason})</small>
+                    <b>${r.authorName}</b> <small style="color:var(--gray);">(${r.reason})</small><br>
+                    <small style="color:var(--gray);">UID автора: ${r.authorId}</small>
                     <p style="margin:5px 0;">${r.text}</p>
                 </div>`;
             });
@@ -899,8 +888,10 @@
         closeModal('modal-report-user');
     }
 
-    function openReportReviewModal(revId) {
+    let currentReportingReviewAuthorId = "";
+    function openReportReviewModal(revId, authorId) {
         reviewReportTargetId = revId;
+        currentReportingReviewAuthorId = authorId;
         document.getElementById('report-review-reason').value = '';
         document.getElementById('report-review-photos').value = '';
         openModal('modal-report-review');
@@ -917,7 +908,9 @@
         for(let f of files) urls.push(await upImg(f));
 
         await db.collection('reports_review').add({
-            reporterId: user.uid, reviewId: reviewReportTargetId,
+            reporterId: user.uid, 
+            reviewAuthorId: currentReportingReviewAuthorId,
+            reviewId: reviewReportTargetId,
             reason: reason, photos: urls, time: new Date(), status: 'new'
         });
         
@@ -934,7 +927,7 @@
             snap.forEach(doc => {
                 let d = doc.data();
                 h += `<div class="mod-card">
-                    <b>${d.name}</b><br><img src="${d.pendingAva}" style="height:100px; margin:10px 0; border-radius:50%;">
+                    <b>${d.name}</b> (UID: ${doc.id})<br><img src="${d.pendingAva}" style="height:100px; margin:10px 0; border-radius:50%;">
                     <br><button class="btn btn-blue" onclick="approveAva('${doc.id}', '${d.pendingAva}')">✅ Одобрить</button>
                     <button class="btn btn-red" onclick="rejectAva('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
                 </div>`;
@@ -949,7 +942,8 @@
                 let d = doc.data();
                 let imgs = d.photos.map(p => `<img src="${p}">`).join('');
                 h += `<div class="mod-card">
-                    <b>${d.title}</b> (${d.price} ₽)<br>${d.desc}<br>
+                    <b>${d.title}</b> (${d.price} ₽)<br>
+                    <small>UID автора: ${d.authorId}</small><br>${d.desc}<br>
                     <div class="mod-gallery">${imgs}</div>
                     <button class="btn btn-blue" onclick="db.collection('ads').doc('${doc.id}').update({status:'active'})">✅ Одобрить</button>
                     <button class="btn btn-red" onclick="db.collection('ads').doc('${doc.id}').update({status:'rejected'})" style="margin-top:5px;">❌ Отклонить</button>
@@ -958,7 +952,26 @@
             document.getElementById('mod-ads').innerHTML = h || 'Нет объявлений на проверке';
         });
 
-        // Загрузка жалоб на юзеров
+        // ПРОВЕРКА НОВЫХ ОТЗЫВОВ
+        db.collection('reviews_mod').onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                h += `<div class="mod-card">
+                    <b>Отзыв для UID: ${d.targetId}</b><br>
+                    От: ${d.authorName} (UID: ${d.authorId})<br>
+                    Оценка: ${'★'.repeat(d.rating)}${'☆'.repeat(5-d.rating)} (${d.reason})<br>
+                    Текст: ${d.text}<br>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn btn-green" onclick="adminApproveNewReview('${doc.id}')">✅ Одобрить отзыв</button>
+                        <button class="btn btn-red" onclick="db.collection('reviews_mod').doc('${doc.id}').delete()">❌ Отклонить</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('mod-reviews-verify').innerHTML = h || 'Нет отзывов на проверке';
+        });
+
+        // Жалобы на юзеров
         db.collection('reports_user').where('status','==','new').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -967,14 +980,14 @@
                     <b style="color:var(--red);">Жалоба на: ${d.reportedName}</b><br>
                     <small>UID нарушителя: ${d.reportedId}</small><br>
                     <p>Причина: ${d.reason}</p>
-                    <small>От: ${d.reporterName}</small><br>
+                    <small>Отправил UID: ${d.reporterId} (${d.reporterName})</small><br>
                     <button class="btn" style="background:var(--gray); color:white; margin-top:10px;" onclick="db.collection('reports_user').doc('${doc.id}').update({status:'closed'})">Скрыть жалобу</button>
                 </div>`;
             });
             document.getElementById('mod-user-reports').innerHTML = h || 'Нет новых жалоб';
         });
 
-        // Загрузка жалоб на отзывы
+        // Жалобы на отзывы
         db.collection('reports_review').where('status','==','new').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -982,6 +995,8 @@
                 let imgs = d.photos.map(p => `<img src="${p}">`).join('');
                 h += `<div class="mod-card">
                     <b>Жалоба на отзыв (ID: ${d.reviewId})</b><br>
+                    <small>UID жалующегося: ${d.reporterId}</small><br>
+                    <small>UID автора отзыва: ${d.reviewAuthorId}</small><br>
                     <p>Причина: ${d.reason}</p>
                     <div class="mod-gallery">${imgs}</div>
                     <button class="btn btn-red" onclick="adminDeleteReview('${d.reviewId}', '${doc.id}')">🗑️ Удалить отзыв</button>
@@ -994,6 +1009,36 @@
 
     function approveAva(id, url) { db.collection('users').doc(id).update({ avatar: url, pendingAva: firebase.firestore.FieldValue.delete() }); }
     function rejectAva(id) { db.collection('users').doc(id).update({ pendingAva: firebase.firestore.FieldValue.delete() }); }
+
+    // Админ одобряет новый отзыв
+    async function adminApproveNewReview(modRevId) {
+        const doc = await db.collection('reviews_mod').doc(modRevId).get();
+        if(!doc.exists) return;
+        const d = doc.data();
+
+        // 1. Копируем в общие одобренные
+        await db.collection('reviews').add({
+            authorId: d.authorId, authorName: d.authorName,
+            targetId: d.targetId, rating: d.rating, text: d.text, reason: d.reason,
+            time: d.time
+        });
+
+        // 2. Считаем рейтинг продавца
+        const targetRef = db.collection('users').doc(d.targetId);
+        await db.runTransaction(async (t) => {
+            const uDoc = await t.get(targetRef);
+            if(uDoc.exists) {
+                let uData = uDoc.data();
+                let newSum = (uData.ratingSum || 0) + d.rating;
+                let newCount = (uData.reviewCount || 0) + 1;
+                t.update(targetRef, { ratingSum: newSum, reviewCount: newCount });
+            }
+        });
+
+        // 3. Удаляем из таблицы проверки
+        await db.collection('reviews_mod').doc(modRevId).delete();
+        alert("Отзыв одобрен!");
+    }
 
     // Админ: Бан / Варн
     async function adminIssueWarning() {
@@ -1020,6 +1065,33 @@
         if(!uid) return alert("Введите UID!");
         await db.collection('users').doc(uid).update({ banned: false, banReason: firebase.firestore.FieldValue.delete(), name: "Восстановлен" });
         alert("Пользователь разбанен!");
+    }
+
+    // Админ: Просмотр чатов чужого пользователя
+    function adminViewUserChats() {
+        let uid = document.getElementById('admin-target-uid').value.trim();
+        if(!uid) return alert("Введите UID пользователя в поле управления!");
+        
+        document.getElementById('admin-watch-uid').innerText = uid;
+        document.getElementById('admin-chats-view').style.display = 'block';
+        document.getElementById('admin-user-chats-list').innerHTML = "Загрузка...";
+
+        db.collection('chat_list').where('participants', 'array-contains', uid).get().then(async snap => {
+            let h = '';
+            for(let doc of snap.docs) {
+                let d = doc.data();
+                let otherId = d.participants.find(id => id !== uid);
+                let uDoc = await db.collection('users').doc(otherId).get();
+                let uName = uDoc.exists ? uDoc.data().name : "Неизвестный";
+
+                h += `
+                <div class="mod-card" onclick="openChatWindow('${doc.id}', 'Шпионаж: ${uName}', '${otherId}', false)">
+                    <b>Диалог с: ${uName}</b> (UID: ${otherId})<br>
+                    <small>ID чата: ${doc.id}</small>
+                </div>`;
+            }
+            document.getElementById('admin-user-chats-list').innerHTML = h || '<p>У пользователя нет активных чатов.</p>';
+        });
     }
 
     // Админ: Удаление отзыва
