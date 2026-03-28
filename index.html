@@ -161,6 +161,7 @@
         </label>
         <div id="ava-status" style="font-size:12px; color:#ff9500; margin-top:5px; font-weight:bold;"></div>
         <h2 id="u-name" style="margin:10px 0;">...</h2>
+        <div id="name-status" style="font-size:12px; color:#ff9500; margin-top:5px; font-weight:bold;"></div>
         <small id="my-uid-label" style="color:var(--gray);"></small><br>
         <button class="btn" style="width:auto; padding:8px 20px; font-size:14px; display:inline-block; margin-top:5px;" onclick="changeName()">Сменить имя</button>
         <div id="u-rating" style="margin-top:15px; font-weight:bold; color:#ff9500; font-size:18px; cursor:pointer; text-decoration: underline;" onclick="openReviewsList(user.uid)">⭐ 0.0 (0 отзывов)</div>
@@ -196,7 +197,8 @@
     <div class="admin-section"><h3>Жалобы на пользователей</h3><div id="mod-user-reports"></div></div>
     <div class="admin-section"><h3>Новые отзывы на проверку</h3><div id="mod-reviews-verify"></div></div>
     <div class="admin-section"><h3>Жалобы на отзывы</h3><div id="mod-review-reports"></div></div>
-    <div class="admin-section"><h3>Фото профилей</h3><div id="mod-avas"></div></div>
+    <div class="admin-section"><h3>Фото профилей на модерации</h3><div id="mod-avas"></div></div>
+    <div class="admin-section"><h3>Никнеймы на модерации</h3><div id="mod-names"></div></div>
     <div class="admin-section"><h3>Объявления</h3><div id="mod-ads"></div></div>
 </div>
 
@@ -421,10 +423,14 @@
                 document.getElementById('modal-warning').style.display = 'flex';
             }
 
-            document.getElementById('u-name').innerText = userData.name;
-            document.getElementById('u-avatar').src = userData.avatar;
+            // Показываем ТЕКУЩИЙ одобренный аватар и имя (не pending)
+            document.getElementById('u-name').innerText = userData.name || 'Пользователь';
+            document.getElementById('u-avatar').src = userData.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
             document.getElementById('my-uid-label').innerText = `Ваш UID: ${user.uid}`;
+            
+            // Статусы модерации
             document.getElementById('ava-status').innerText = userData.pendingAva ? "⌛ Фото на модерации" : "";
+            document.getElementById('name-status').innerText = userData.pendingName ? "⌛ Никнейм на модерации: " + userData.pendingName : "";
             
             let rCount = userData.reviewCount || 0;
             let rAvg = rCount > 0 ? (userData.ratingSum / rCount).toFixed(1) : "0.0";
@@ -832,7 +838,6 @@
         const text = document.getElementById('review-text').value;
         const reason = document.getElementById('review-status').value;
 
-        // Падает в модерацию
         await db.collection('reviews_mod').add({
             authorId: user.uid, authorName: userData.name,
             targetId: chatTargetUid,
@@ -921,7 +926,7 @@
 
     // --- АДМИН ПАНЕЛЬ ---
     function initAdminMod() {
-        // Загрузка аватарок
+        // Загрузка аватарок на модерацию
         db.collection('users').where('pendingAva', '!=', null).onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -933,6 +938,22 @@
                 </div>`;
             });
             document.getElementById('mod-avas').innerHTML = h || 'Нет фото на проверке';
+        });
+
+        // Загрузка никнеймов на модерацию
+        db.collection('users').where('pendingName', '!=', null).onSnapshot(snap => {
+            let h = '';
+            snap.forEach(doc => {
+                let d = doc.data();
+                h += `<div class="mod-card">
+                    <b>Текущий:</b> ${d.name}<br>
+                    <b>Новый:</b> ${d.pendingName}<br>
+                    <small>UID: ${doc.id}</small><br>
+                    <button class="btn btn-blue" onclick="approveName('${doc.id}', '${d.pendingName}')">✅ Одобрить</button>
+                    <button class="btn btn-red" onclick="rejectName('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
+                </div>`;
+            });
+            document.getElementById('mod-names').innerHTML = h || 'Нет никнеймов на проверке';
         });
 
         // Загрузка объявлений
@@ -1009,6 +1030,11 @@
 
     function approveAva(id, url) { db.collection('users').doc(id).update({ avatar: url, pendingAva: firebase.firestore.FieldValue.delete() }); }
     function rejectAva(id) { db.collection('users').doc(id).update({ pendingAva: firebase.firestore.FieldValue.delete() }); }
+    
+    // Одобрение никнейма
+    function approveName(id, newName) { db.collection('users').doc(id).update({ name: newName, pendingName: firebase.firestore.FieldValue.delete() }); }
+    // Отклонение никнейма
+    function rejectName(id) { db.collection('users').doc(id).update({ pendingName: firebase.firestore.FieldValue.delete() }); }
 
     // Админ одобряет новый отзыв
     async function adminApproveNewReview(modRevId) {
@@ -1016,14 +1042,12 @@
         if(!doc.exists) return;
         const d = doc.data();
 
-        // 1. Копируем в общие одобренные
         await db.collection('reviews').add({
             authorId: d.authorId, authorName: d.authorName,
             targetId: d.targetId, rating: d.rating, text: d.text, reason: d.reason,
             time: d.time
         });
 
-        // 2. Считаем рейтинг продавца
         const targetRef = db.collection('users').doc(d.targetId);
         await db.runTransaction(async (t) => {
             const uDoc = await t.get(targetRef);
@@ -1035,7 +1059,6 @@
             }
         });
 
-        // 3. Удаляем из таблицы проверки
         await db.collection('reviews_mod').doc(modRevId).delete();
         alert("Отзыв одобрен!");
     }
@@ -1067,7 +1090,6 @@
         alert("Пользователь разбанен!");
     }
 
-    // Админ: Просмотр чатов чужого пользователя
     function adminViewUserChats() {
         let uid = document.getElementById('admin-target-uid').value.trim();
         if(!uid) return alert("Введите UID пользователя в поле управления!");
@@ -1094,7 +1116,6 @@
         });
     }
 
-    // Админ: Удаление отзыва
     async function adminDeleteReview(revId, reportId) {
         const revDoc = await db.collection('reviews').doc(revId).get();
         if(revDoc.exists) {
