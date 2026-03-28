@@ -379,14 +379,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Включаем persistence для авторизации
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
     let user = null;
     let userData = null;
     let rawAds = [];
     
-    // Переменные чата
     let currentChatId = null;
     let isSupportMode = false;
     let chatTargetUid = null;
@@ -397,19 +395,14 @@
     let currentChatData = null;
     let currentAdId = null;
     
-    // Для отзывов и редактирования
     let selectedStars = 0;
     let currentPublicUid = null;
     let editingAdId = null;
     let reviewReportTargetId = null;
     
-    // Карта имен поддержки (для админа)
     let supportNameMap = {};
-    
-    // Онлайн статусы
     let onlineUsers = {};
 
-    // --- АВТОРИЗАЦИЯ И ИНИЦИАЛИЗАЦИЯ ---
     auth.onAuthStateChanged(async u => {
         if(u) {
             user = u;
@@ -495,7 +488,6 @@
         });
     }
 
-    // Отслеживание закрытия страницы
     window.addEventListener('beforeunload', () => {
         if(user) updateUserOnlineStatus(false);
     });
@@ -594,7 +586,6 @@
         }
     }
 
-    // --- ОБЪЯВЛЕНИЯ ---
     async function submitAd() {
         const btn = document.getElementById('sendAdBtn');
         btn.disabled = true; btn.innerText = "Сохранение...";
@@ -712,7 +703,6 @@
         }
     }
 
-    // --- ПУБЛИЧНЫЙ ПРОФИЛЬ ---
     async function showPublicProfile(uid) {
         currentPublicUid = uid;
         const doc = await db.collection('users').doc(uid).get();
@@ -768,7 +758,6 @@
         });
     }
 
-    // --- ЧАТЫ ---
     async function startNewChat(otherId, otherName, otherAvatar, adId = null) {
         if(otherId === user.uid) { alert("Это ваше объявление."); return; }
         let chatId = [user.uid, otherId].sort().join("_");
@@ -812,7 +801,6 @@
         }
     }
 
-    // Форматирование времени по Москве
     function formatMoscowTime(timestamp) {
         if(!timestamp) return '';
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -823,7 +811,6 @@
         });
     }
 
-    // Форматирование "был в сети"
     function formatLastSeen(timestamp) {
         if(!timestamp) return '';
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -831,7 +818,6 @@
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
         
         if(diffMins < 1) return 'Был в сети только что';
         if(diffMins < 60) return `Был в сети ${diffMins} мин. назад`;
@@ -867,7 +853,6 @@
         document.getElementById('chat-last-seen').innerText = "";
         openModal('modal-chat');
         
-        // Показываем контекст объявления если есть
         if(adId && !isSupport) {
             db.collection('ads').doc(adId).get().then(doc => {
                 if(doc.exists) {
@@ -882,7 +867,6 @@
             document.getElementById('chat-ad-context').style.display = 'none';
         }
         
-        // Отслеживаем онлайн статус собеседника
         if(!isSupport && targetUid) {
             db.collection('users').doc(targetUid).onSnapshot(doc => {
                 if(doc.exists) {
@@ -960,7 +944,6 @@
         document.getElementById('chat-dropdown').classList.toggle('show');
     }
 
-    // === ЛОГИКА КНОПОК ЧАТА ===
     async function actionChat(action) {
         if(!currentChatId || isSupportMode) return;
         document.getElementById('chat-dropdown').classList.remove('show');
@@ -1071,13 +1054,11 @@
 
     function openChatMenu(e, chatId) {
         e.stopPropagation();
-        // Закрываем другие меню
         document.querySelectorAll('.dropdown').forEach(d => {
             if(d.id !== 'chat-dropdown') d.classList.remove('show');
         });
     }
 
-    // Уведомления о новых сообщениях
     function loadUnreadNotifications() {
         if(!user) return;
         db.collection('chat_list').where('participants', 'array-contains', user.uid).onSnapshot(snap => {
@@ -1096,7 +1077,6 @@
         });
     }
 
-    // --- ОТЗЫВЫ ---
     function openReviewModal() {
         selectedStars = 0;
         document.querySelectorAll('#review-stars span').forEach(s => s.classList.remove('active'));
@@ -1128,18 +1108,29 @@
         closeModal('modal-review');
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТЗЫВОВ ===
     function openReviewsList(uid) {
         openModal('modal-reviews-list');
         document.getElementById('reviews-list-container').innerHTML = 'Загрузка...';
         
         db.collection('reviews').where('targetId', '==', uid).get().then(snap => {
             let h = '';
+            
+            // Проверяем: текущий пользователь = владелец профиля с отзывами?
+            const isOwner = user && user.uid === uid;
+            
             snap.forEach(doc => {
                 let r = doc.data();
                 let stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                
+                // Кнопка жалобы показывается ТОЛЬКО если ты владелец профиля
+                let menuBtn = isOwner 
+                    ? `<div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}', '${r.authorId}')">⋮</div>` 
+                    : '';
+                
                 h += `
                 <div class="review-item">
-                    <div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}', '${r.authorId}')">⋮</div>
+                    ${menuBtn}
                     <div style="color:#ff9500; font-size:18px;">${stars}</div>
                     <b>${r.authorName}</b> <small style="color:var(--gray);">(${r.reason})</small><br>
                     <small style="color:var(--gray);">UID автора: ${r.authorId}</small>
@@ -1150,7 +1141,6 @@
         });
     }
 
-    // --- ЖАЛОБЫ ---
     function openReportUserModal() {
         document.getElementById('chat-dropdown').classList.remove('show');
         document.getElementById('report-user-target-name').innerText = chatTargetName;
@@ -1202,7 +1192,6 @@
         closeModal('modal-report-review');
     }
 
-    // --- АДМИН ПАНЕЛЬ ---
     function initAdminMod() {
         db.collection('users').where('pendingAva', '!=', null).onSnapshot(snap => {
             let h = '';
