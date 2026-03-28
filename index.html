@@ -476,9 +476,72 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function upImg(file) {
-        let fd = new FormData(); fd.append("image", file);
+        if(!file || !file.files || file.files.length === 0) return '';
+        let fd = new FormData(); 
+        fd.append("image", file.files[0]);
         let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
-        let d = await r.json(); return d.data.url;
+        let d = await r.json(); 
+        return d.data?.url || '';
+    }
+
+    // === ИСПРАВЛЕНА ЗАГРУЗКА АВАТАРА ===
+    async function uploadNewAvatar(input) {
+        if(!user) { alert('Сначала войдите в аккаунт!'); return; }
+        if(!input.files || input.files.length === 0) return;
+        
+        const file = input.files[0];
+        
+        // Показываем статус загрузки
+        document.getElementById('ava-status').innerText = "⏳ Загрузка фото...";
+        
+        let fd = new FormData(); 
+        fd.append("image", file);
+        
+        try {
+            let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
+            let d = await r.json(); 
+            
+            if(d.data && d.data.url) {
+                // Сохраняем в pendingAva для модерации
+                await db.collection('users').doc(user.uid).update({ 
+                    pendingAva: d.data.url 
+                });
+                alert("✅ Фото отправлено на модерацию! После одобрения админом оно появится у всех.");
+                document.getElementById('ava-status').innerText = "⌛ Фото на модерации";
+            } else {
+                alert("❌ Ошибка загрузки фото. Попробуйте другой файл.");
+                document.getElementById('ava-status').innerText = "";
+            }
+        } catch(e) {
+            console.error('Ошибка загрузки:', e);
+            alert("❌ Ошибка: " + e.message);
+            document.getElementById('ava-status').innerText = "";
+        }
+        
+        // Очищаем input чтобы можно было загрузить тот же файл снова
+        input.value = '';
+    }
+
+    // === ИСПРАВЛЕНА СМЕНА ИМЕНИ ===
+    function changeName() {
+        if(!user) { alert('Сначала войдите в аккаунт!'); return; }
+        
+        const currentName = userData?.name || '';
+        const newName = prompt("Введите новое имя:", currentName);
+        
+        if(newName && newName.trim() !== '' && newName.trim() !== currentName) {
+            // Сохраняем в pendingName для модерации
+            db.collection('users').doc(user.uid).update({ 
+                pendingName: newName.trim() 
+            }).then(() => {
+                alert("✅ Имя отправлено на модерацию! После одобрения админом оно изменится у всех.");
+                document.getElementById('name-status').innerText = "⌛ Никнейм на модерации: " + newName.trim();
+            }).catch(e => {
+                alert("❌ Ошибка: " + e.message);
+            });
+        } else if(newName && newName.trim() === currentName) {
+            alert("ℹ️ Вы ввели то же самое имя.");
+        }
     }
 
     // --- ОБЪЯВЛЕНИЯ ---
