@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "560885508854",
+    "project_id": "yavito-7930e",
+    "storage_bucket": "yavito-7930e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:560885508854:android:eaf4d547d26bad05dedad7",
+        "android_client_info": {
+          "package_name": "com.yavito.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "560885508854-579q9ei03to95la1oa60mcvagded5g0l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yavito.app",
+            "certificate_hash": "f69a2e4821e0ef06dd613ca958fbb9849fcf368b"
+          }
+        },
+        {
+          "client_id": "560885508854-mumilo7aa6bdvtdtqbbj2q7erknlqcva.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG36iXdRlPOg1nOq0wYUgkeDCgHRWSVbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "560885508854-mumilo7aa6bdvtdtqbbj2q7erknlqcva.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
