@@ -375,6 +375,15 @@
     const IMGBB_API = 'd3e0d626da4b69b9cadd392fe36efeac';
     const ADMIN_ID = "sobakastalina123@gmail.com";
 
+    // Добавь это сразу после firebase.initializeApp(firebaseConfig);
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+      console.log("Авторизация настроена для приложения");
+  })
+  .catch((error) => {
+      console.error("Ошибка сохранения входа:", error);
+  });
+    
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -1403,5 +1412,15 @@
     }
 
 </script>
+    // Добавь это в самый конец блока <script>, где у тебя логика входа
+firebase.auth().getRedirectResult()
+  .then((result) => {
+    if (result.user) {
+      console.log("Успешный вход через редирект:", result.user);
+      // Здесь можно вызвать функцию обновления интерфейса
+    }
+  }).catch((error) => {
+    console.error("Ошибка при возврате из Google:", error.message);
+  });
 </body>
 </html>
