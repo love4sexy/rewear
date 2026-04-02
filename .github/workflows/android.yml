@@ -1,33 +1,37 @@
 name: Build Android APK
-on: [push] # Собирать каждый раз, когда ты обновляешь код
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Install Dependencies
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/android
-          npx cap update android  # Эта строчка сама создаст недостающие файлы
-      - name: Build Web Assets
-        run: npx cap copy
+          npx cap sync android
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '22'
+          java-version: '21'
+
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+
       - name: Upload APK
-        uses: actions/upload-artifact@v4  # Было v3, ставим v4
+        uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: LookUp-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
