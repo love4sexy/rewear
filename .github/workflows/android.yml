@@ -13,6 +13,7 @@ jobs:
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/android
+          npx cap update android  # Эта строчка сама создаст недостающие файлы
       - name: Build Web Assets
         run: npx cap copy
       - name: Setup Java
