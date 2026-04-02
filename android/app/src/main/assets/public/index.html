@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yavito Clone — Рабочая версия</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; margin: 0; }
+        header { background: white; padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-blue { background: #0077ff; color: white; }
+        .btn-green { background: #00cc66; color: white; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 400px; position: relative; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .admin-panel { background: #fff3cd; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffeeba; display: none; }
+        .status { font-size: 12px; padding: 2px 6px; border-radius: 4px; }
+        .status-pending { background: #eee; }
+        .status-active { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-size: 22px; font-weight: bold; color: #0077ff;">YAVITO</div>
+    <div id="auth-ui">
+        <button class="btn btn-blue" onclick="login()">Войти через Google</button>
+    </div>
+</header>
+
+<main class="container">
+    <div id="admin-zone" class="admin-panel">
+        <h3>Панель модерации (Видна только вам)</h3>
+        <div id="mod-list"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Объявления</h2>
+        <button class="btn btn-green" onclick="openModal('addModal')">+ Подать объявление</button>
+    </div>
+    <div id="ads-list" class="grid"></div>
+</main>
+
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span onclick="closeModal('addModal')" style="float:right; cursor:pointer;">&times;</span>
+        <h3>Новое объявление</h3>
+        <input type="text" id="ad-title" placeholder="Название">
+        <input type="number" id="ad-price" placeholder="Цена (₽)">
+        <textarea id="ad-desc" placeholder="Описание"></textarea>
+        <button class="btn btn-blue" style="width:100%" onclick="saveAd()">Отправить на проверку</button>
+    </div>
+</div>
+
+<script>
+    // ТВОИ НАСТРОЙКИ FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
+        authDomain: "yavito-7930e.firebaseapp.com",
+        projectId: "yavito-7930e",
+        storageBucket: "yavito-7930e.firebasestorage.app",
+        messagingSenderId: "560885508854",
+        appId: "1:560885508854:web:f7c22cebdfde2279dedad7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    // ВСТАВЬ СВОЙ EMAIL ТУТ, чтобы стать админом
+    const ADMIN_EMAIL = "sobakastalina123@gmail.com"; 
+
+    let currentUser = null;
+
+    // Вход через Google
+    function login() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider);
+    }
+
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        if (user) {
+            document.getElementById('auth-ui').innerHTML = `
+                <span>${user.displayName}</span>
+                <button class="btn" onclick="auth.signOut()">Выйти</button>
+            `;
+            if (user.email === ADMIN_EMAIL) {
+                document.getElementById('admin-zone').style.display = 'block';
+                loadModeration();
+            }
+        } else {
+            document.getElementById('auth-ui').innerHTML = `<button class="btn btn-blue" onclick="login()">Войти через Google</button>`;
+            document.getElementById('admin-zone').style.display = 'none';
+        }
+        loadAds();
+    });
+
+    // Сохранение в базу
+    function saveAd() {
+        if (!currentUser) return alert("Сначала войдите!");
+        
+        db.collection("ads").add({
+            title: document.getElementById('ad-title').value,
+            price: document.getElementById('ad-price').value,
+            desc: document.getElementById('ad-desc').value,
+            author: currentUser.displayName,
+            authorEmail: currentUser.email,
+            status: "pending",
+            createdAt: new Date()
+        }).then(() => {
+            alert("Отправлено на модерацию!");
+            closeModal('addModal');
+        });
+    }
+
+    // Загрузка одобренных объявлений
+    function loadAds() {
+        db.collection("ads").where("status", "==", "active").onSnapshot(snap => {
+            let html = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                html += `
+                    <div class="card">
+                        <div style="height:120px; background:#eee; margin-bottom:10px; border-radius:5px;"></div>
+                        <strong>${ad.title}</strong>
+                        <div style="color:#0077ff; font-size:18px;">${ad.price} ₽</div>
+                        <p style="font-size:12px; color:#666;">Продавец: ${ad.author}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('ads-list').innerHTML = html || 'Пока нет одобренных товаров.';
+        });
+    }
+
+    // Загрузка для админа
+    function loadModeration() {
+        db.collection("ads").where("status", "==", "pending").onSnapshot(snap => {
+            let html = '';
+            snap.forEach(doc => {
+                const ad = doc.data();
+                html += `
+                    <div style="background:white; padding:10px; margin-top:10px; border-radius:5px;">
+                        <b>${ad.title}</b> (${ad.price}₽) <br>
+                        <button onclick="approveAd('${doc.id}')" style="color:green">Одобрить</button>
+                        <button onclick="deleteAd('${doc.id}')" style="color:red">Удалить</button>
+                    </div>
+                `;
+            });
+            document.getElementById('mod-list').innerHTML = html || 'Заявок нет.';
+        });
+    }
+
+    function approveAd(id) { db.collection("ads").doc(id).update({ status: "active" }); }
+    function deleteAd(id) { db.collection("ads").doc(id).delete(); }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+</script>
+
+</body>
+</html>
