@@ -20,15 +20,22 @@ jobs:
 
       - name: Initialize Android Project
         run: |
-          # Создаем папку android с нуля
+          # 1. Создаем папку android
           npx cap add android
           
-          # Генерируем иконки, если файл icon.png есть в корне
+          # 2. Генерируем иконки. 
+          # Если твой файл называется 1775165917303.png, мы временно переименуем его в icon.png
           if [ -f "1775165917303.png" ]; then 
+            cp 1775165917303.png icon.png
             npx capacitor-assets generate --android
           fi
           
-          # Копируем твой HTML/JS из папки www в проект Android
+          # 3. Копируем google-services.json (без него Firebase не заведется)
+          if [ -f "google-services.json" ]; then 
+            cp google-services.json android/app/
+          fi
+          
+          # 4. Синхронизируем код из www
           npx cap sync android
 
       - name: Setup Java 21
