@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">LookUp</string>
-    <string name="title_activity_main">LookUp</string>
-    <string name="package_name">com.yavito.app</string>
-    <string name="custom_url_scheme">com.yavito.app</string>
-</resources>
