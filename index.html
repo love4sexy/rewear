@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YAVITO 5.0 — Ультиматум</title>
+    <title>Lookup Маркетплейс</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -119,7 +119,7 @@
 
 <header>
     <div class="head-top">
-        <div class="logo" onclick="location.reload()">YAVITO</div>
+        <div class="logo" onclick="location.reload()">Lookup</div>
         <div style="display: flex; gap: 15px; align-items: center;">
             <span style="cursor:pointer; font-size: 20px;" onclick="toggleTheme()">🌓</span>
             <span id="auth-btn" style="cursor:pointer; font-size: 14px; font-weight:bold; color:var(--blue);" onclick="login()">Войти</span>
@@ -758,12 +758,14 @@
         });
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ: НОВЫЙ ЧАТ С УНИКАЛЬНЫМ ID ===
     async function startNewChat(otherId, otherName, otherAvatar, adId = null) {
         if(otherId === user.uid) { alert("Это ваше объявление."); return; }
-        let chatId = [user.uid, otherId].sort().join("_");
         
-        const chatRef = db.collection('chat_list').doc(chatId);
-        const doc = await chatRef.get();
+        // Генерируем УНИКАЛЬНЫЙ ID для чата (не на основе UID), чтобы после удаления начинался новый
+        const uniqueChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        const chatRef = db.collection('chat_list').doc(uniqueChatId);
         
         let chatData = {
             participants: [user.uid, otherId],
@@ -771,17 +773,14 @@
             blocked: false,
             muted: {},
             pinned: {},
-            adId: adId
+            adId: adId,
+            createdAt: new Date()
         };
         
-        if(!doc.exists) {
-            await chatRef.set(chatData);
-        } else if(adId && !doc.data().adId) {
-            await chatRef.update({ adId: adId });
-        }
+        await chatRef.set(chatData);
         
         currentAdId = adId;
-        openChatWindow(chatId, otherName, otherId, false, otherAvatar);
+        openChatWindow(uniqueChatId, otherName, otherId, false, otherAvatar, adId);
     }
 
     function openSupport() {
@@ -801,11 +800,14 @@
         }
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ: ДАТА + ВРЕМЯ ПО МОСКВЕ ===
     function formatMoscowTime(timestamp) {
         if(!timestamp) return '';
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleTimeString('ru-RU', { 
+        return date.toLocaleString('ru-RU', { 
             timeZone: 'Europe/Moscow',
+            day: '2-digit',
+            month: '2-digit',
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -853,6 +855,7 @@
         document.getElementById('chat-last-seen').innerText = "";
         openModal('modal-chat');
         
+        // === ИСПРАВЛЕНИЕ: Показываем контекст объявления для ОБЕИХ сторон ===
         if(adId && !isSupport) {
             db.collection('ads').doc(adId).get().then(doc => {
                 if(doc.exists) {
@@ -944,6 +947,7 @@
         document.getElementById('chat-dropdown').classList.toggle('show');
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ УДАЛЕНИЯ: Полное удаление чата ===
     async function actionChat(action) {
         if(!currentChatId || isSupportMode) return;
         document.getElementById('chat-dropdown').classList.remove('show');
@@ -967,10 +971,19 @@
         }
         else if(action === 'delete') {
             if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
-                await db.collection('chats').doc(currentChatId).delete();
+                // === ПОЛНОЕ УДАЛЕНИЕ: чат + все сообщения ===
+                const messagesRef = db.collection('chats').doc(currentChatId).collection('messages');
+                const batch = db.batch();
+                
+                const messagesSnap = await messagesRef.get();
+                messagesSnap.forEach(doc => batch.delete(doc.ref));
+                
+                await batch.commit();
                 await chatRef.delete();
+                
                 closeModal('modal-chat');
                 loadChatsList();
+                alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
             }
         }
     }
@@ -1108,22 +1121,18 @@
         closeModal('modal-review');
     }
 
-    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТЗЫВОВ ===
     function openReviewsList(uid) {
         openModal('modal-reviews-list');
         document.getElementById('reviews-list-container').innerHTML = 'Загрузка...';
         
         db.collection('reviews').where('targetId', '==', uid).get().then(snap => {
             let h = '';
-            
-            // Проверяем: текущий пользователь = владелец профиля с отзывами?
             const isOwner = user && user.uid === uid;
             
             snap.forEach(doc => {
                 let r = doc.data();
                 let stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
                 
-                // Кнопка жалобы показывается ТОЛЬКО если ты владелец профиля
                 let menuBtn = isOwner 
                     ? `<div class="review-menu-btn" onclick="openReportReviewModal('${doc.id}', '${r.authorId}')">⋮</div>` 
                     : '';
