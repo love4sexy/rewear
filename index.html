@@ -1076,42 +1076,60 @@
         }
     }
 
-    async function submitAd() {
-        console.log('📤 Публикация объявления...');
-        const btn = document.getElementById('sendAdBtn');
-        btn.disabled = true; btn.innerText = "Сохранение...";
-        
-        const files = document.getElementById('post-images').files;
-        let urls = [];
-        
-        if(files.length > 0) {
-            for(let f of files) urls.push(await upImg(f));
+async function submitAd() {
+    console.log('📤 Публикация объявления...');
+    const btn = document.getElementById('sendAdBtn');
+    btn.disabled = true; 
+    btn.innerText = "Сохранение...";
+    
+    const files = document.getElementById('post-images').files;
+    let urls = [];
+    
+    if(files.length > 0) {
+        for(let f of files) {
+            const res = await upImg(f);
+            // ПРОВЕРКА: Если res это объект (от ImgBB), берем ссылку. 
+            // Если res это уже строка, берем её.
+            const url = (typeof res === 'object' && res.url) ? res.url : res;
+            if(url) urls.push(url);
         }
-
-        let adData = {
-            title: document.getElementById('post-title').value,
-            price: document.getElementById('post-price').value,
-            cat: document.getElementById('post-cat').value,
-            loc: document.getElementById('post-loc').value,
-            desc: document.getElementById('post-desc').value,
-            status: 'pending',
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-
-        if(editingAdId) {
-            if(urls.length > 0) adData.photos = urls; 
-            await db.collection('ads').doc(editingAdId).update(adData);
-            alert("Изменения отправлены на модерацию!");
-        } else {
-            if(urls.length === 0) { alert("Добавьте хотя бы одно фото!"); btn.disabled = false; btn.innerText = "Опубликовать"; return; }
-            adData.photos = urls;
-            adData.authorId = user.uid;
-            await db.collection('ads').add(adData);
-            alert("Объявление отправлено на модерацию!");
-        }
-        location.reload();
     }
+
+    let adData = {
+        title: document.getElementById('post-title').value,
+        price: document.getElementById('post-price').value,
+        cat: document.getElementById('post-cat').value,
+        loc: document.getElementById('post-loc').value,
+        desc: document.getElementById('post-desc').value,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        // ИСПОЛЬЗУЕМ ОБА НАЗВАНИЯ ДЛЯ ПОДСТРАХОВКИ
+        images: urls, 
+        photos: urls  
+    };
+
+    if(editingAdId) {
+        // При редактировании тоже обновляем оба поля, если загружены новые фото
+        if(urls.length > 0) {
+            adData.images = urls;
+            adData.photos = urls;
+        }
+        await db.collection('ads').doc(editingAdId).update(adData);
+        alert("Изменения отправлены на модерацию!");
+    } else {
+        if(urls.length === 0) { 
+            alert("Добавьте хотя бы одно фото!"); 
+            btn.disabled = false; 
+            btn.innerText = "Опубликовать"; 
+            return; 
+        }
+        adData.authorId = user.uid;
+        await db.collection('ads').add(adData);
+        alert("Объявление отправлено на модерацию!");
+    }
+    location.reload();
+}
 
     function editAd(adId) {
         db.collection('ads').doc(adId).get().then(doc => {
