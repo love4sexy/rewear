@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Lookup Маркетплейс</title>
-    
-    <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
     <style>
         :root {
             --bg: #f4f4f4; --card: #ffffff; --text: #222; --blue: #0077ff; 
             --green: #00cc66; --red: #ff3b30; --gray: #8e8e93; --border: #ddd;
         }
         body.dark { --bg: #121212; --card: #1e1e1e; --text: #efefef; --gray: #636366; --border: #333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; transition: 0.2s; }
         
         /* HEADER */
         header { background: var(--card); padding: 12px 15px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -28,7 +23,7 @@
 
         /* NAV */
         .bottom-nav { position: fixed; bottom: 15px; left: 15px; right: 15px; background: var(--card); display: flex; border-radius: 20px; height: 65px; z-index: 1001; box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--border); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; color: var(--gray); position: relative; -webkit-tap-highlight-color: transparent; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; color: var(--gray); position: relative; }
         .nav-item.active { color: var(--blue); }
         .nav-item i { font-style: normal; font-size: 22px; margin-bottom: 2px; }
         .badge { display: none; position: absolute; top: 10px; right: 25px; width: 10px; height: 10px; background: var(--red); border-radius: 50%; }
@@ -41,7 +36,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 15px; }
         
         /* CARD */
-        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; -webkit-tap-highlight-color: transparent; }
+        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid var(--border); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 170px; object-fit: cover; background: #eee; }
         .card-body { padding: 12px; }
@@ -61,7 +56,7 @@
         .ad-details { padding: 20px; }
 
         /* CHATS */
-        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; position: relative; -webkit-tap-highlight-color: transparent; }
+        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; position: relative; }
         .chat-list-item.pinned { border-left: 5px solid var(--blue); }
         .chat-list-item.muted { opacity: 0.6; }
         .chat-avatar-wrapper { position: relative; flex-shrink: 0; }
@@ -83,21 +78,20 @@
 
         /* CHAT HEADER & DROPDOWN */
         .chat-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; position: relative; }
-        .chat-header-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .chat-ad-context { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg); border-radius: 10px; margin-top: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .chat-header-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .chat-ad-context { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg); border-radius: 10px; margin-top: 10px; cursor: pointer; }
         .chat-ad-context img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
         .chat-ad-context .ad-info { flex: 1; }
         .chat-ad-context .ad-info .title { font-size: 13px; font-weight: bold; margin-bottom: 3px; }
         .chat-ad-context .ad-info .price { font-size: 12px; color: var(--blue); font-weight: bold; }
         .dropdown { display: none; position: absolute; top: 40px; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2500; overflow: hidden; width: 250px; }
         .dropdown.show { display: block; }
-        .drop-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid var(--border); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .drop-item { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
         .drop-item:last-child { border-bottom: none; }
         .drop-item:hover { background: var(--bg); }
 
         /* BUTTONS & MODALS */
-        .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; -webkit-tap-highlight-color: transparent; }
-        .btn:active { transform: scale(0.98); }
+        .btn { padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 15px; }
         .btn-blue { background: var(--blue); color: white; }
         .btn-red { background: #ffe5e5; color: var(--red); }
         .btn-green { background: var(--green); color: white; }
@@ -114,13 +108,9 @@
 
         /* RATING STARS & REVIEWS */
         .stars { display: flex; gap: 10px; justify-content: center; font-size: 30px; cursor: pointer; color: var(--gray); margin: 15px 0; }
-        .stars span { -webkit-tap-highlight-color: transparent; }
         .stars span.active { color: #ff9500; }
         .review-item { background: var(--bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; position: relative; }
-        .review-menu-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; font-weight: bold; padding: 0 10px; -webkit-tap-highlight-color: transparent; }
-
-        /* DEBUG CONSOLE */
-        #mobile-debug { position:fixed; bottom:0; left:0; right:0; background:#000; color:#0f0; font:11px monospace; max-height:200px; overflow:auto; z-index:9999; padding:10px; display:none; }
+        .review-menu-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; font-weight: bold; padding: 0 10px; }
 
         @media (min-width: 768px) { .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); } }
     </style>
@@ -279,6 +269,7 @@
             </div>
         </div>
         
+        <!-- Контекст объявления -->
         <div id="chat-ad-context" class="chat-ad-context" style="display:none;" onclick="openAdFromChat()">
             <img id="chat-ad-img" src="" alt="">
             <div class="ad-info">
@@ -371,25 +362,8 @@
     <div class="nav-item" onclick="requireAuth(() => showPage('profile'))"><i>👤</i>Профиль</div>
 </nav>
 
-<!-- Отладочная консоль для мобильных -->
-<div id="mobile-debug"></div>
-
 <script>
-    // === ОТЛАДКА ДЛЯ МОБИЛЬНЫХ ===
-    const debugEl = document.getElementById('mobile-debug');
-    const isDebug = location.search.includes('debug=1');
-    if(isDebug) {
-        debugEl.style.display = 'block';
-        const oldLog = console.log;
-        const oldError = console.error;
-        console.log = (...args) => { oldLog(...args); debugEl.innerHTML += '📝 ' + args.join(' ') + '<br>'; debugEl.scrollTop = debugEl.scrollHeight; };
-        console.error = (...args) => { oldError(...args); debugEl.innerHTML += '❌ ' + args.join(' ') + '<br>'; debugEl.scrollTop = debugEl.scrollHeight; };
-        console.log('📱 Device:', navigator.userAgent);
-        console.log('🔗 URL:', location.href);
-        console.log('🔒 Protocol:', location.protocol);
-    }
-
-    // === FIREBASE CONFIG ===
+    // --- НАСТРОЙКИ ---
     const firebaseConfig = {
         apiKey: "AIzaSyClUclRijtD4zQaJCqyOY6cU5db6eh_BgA",
         authDomain: "yavito-7930e.firebaseapp.com",
@@ -401,24 +375,16 @@
     const IMGBB_API = 'd3e0d626da4b69b9cadd392fe36efeac';
     const ADMIN_ID = "sobakastalina123@gmail.com";
 
-    // === ИНИЦИАЛИЗАЦИЯ ===
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    
-    // Включаем персистентность с обработкой ошибок
-    db.enablePersistence().catch(err => {
-        if(err.code === 'failed-precondition') {
-            console.log('⚠️ Persistence не поддерживается (множественные вкладки)');
-        } else if(err.code === 'unimplemented') {
-            console.log('⚠️ Persistence не поддерживается в этом браузере');
-        }
-    });
 
-    // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
     let user = null;
     let userData = null;
     let rawAds = [];
+    
     let currentChatId = null;
     let isSupportMode = false;
     let chatTargetUid = null;
@@ -428,59 +394,16 @@
     let currentChatMsgCount = 0;
     let currentChatData = null;
     let currentAdId = null;
+    
     let selectedStars = 0;
     let currentPublicUid = null;
     let editingAdId = null;
     let reviewReportTargetId = null;
-    let supportNameMap = {};
-
-    // === АВТОРИЗАЦИЯ С ПОДДЕРЖКОЙ МОБИЛЬНЫХ ===
-    function login() {
-        console.log('🔐 Вход...');
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if(isMobile) {
-            console.log('📱 Мобильное устройство → signInWithRedirect');
-            auth.signInWithRedirect(provider);
-        } else {
-            console.log('💻 ПК → signInWithPopup');
-            auth.signInWithPopup(provider);
-        }
-    }
-
-    // Обработка возврата после редиректа (для мобильных)
-    auth.getRedirectResult().then(result => {
-        if(result.user) {
-            console.log('✅ Успешный вход после редиректа');
-        }
-    }).catch(error => {
-        console.error('❌ Ошибка redirect:', error.code, error.message);
-        alert('Ошибка входа: ' + error.message);
-    });
-
-    // === ПРОВЕРКА ДОСТУПА ПРИ ВХОДЕ ===
-async function testFirestoreAccess() {
-    try {
-        // Пробуем прочитать 1 документ из users (публичный доступ)
-        await db.collection('users').limit(1).get();
-        console.log('✅ Firestore доступен');
-        return true;
-    } catch(e) {
-        console.error('❌ Firestore ошибка:', e.code, e.message);
-        if(e.code === 'permission-denied') {
-            alert('⚠️ Ошибка прав доступа. Проверь Firestore Rules!');
-        }
-        return false;
-    }
-}
-
-// Вызываем после инициализации
-testFirestoreAccess();
     
+    let supportNameMap = {};
+    let onlineUsers = {};
+
     auth.onAuthStateChanged(async u => {
-        console.log('🔄 authStateChanged:', u ? u.uid : 'null');
-        
         if(u) {
             user = u;
             document.getElementById('auth-btn').style.display = 'none';
@@ -499,6 +422,7 @@ testFirestoreAccess();
         loadFeed(); 
     });
 
+    function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function logout() { 
         if(user) updateUserOnlineStatus(false);
         auth.signOut().then(() => { location.reload(); }); 
@@ -514,11 +438,9 @@ testFirestoreAccess();
     }
 
     async function checkUserDb() {
-        console.log('👤 Проверка пользователя:', user.uid);
         const ref = db.collection('users').doc(user.uid);
         const doc = await ref.get();
         if(!doc.exists) {
-            console.log('📝 Создаём профиль пользователя');
             await ref.set({
                 name: user.displayName || 'Пользователь',
                 avatar: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
@@ -560,14 +482,10 @@ testFirestoreAccess();
 
     async function updateUserOnlineStatus(isOnline) {
         if(!user) return;
-        try {
-            await db.collection('users').doc(user.uid).update({
-                online: isOnline,
-                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch(e) {
-            console.error('Ошибка обновления статуса:', e);
-        }
+        await db.collection('users').doc(user.uid).update({
+            online: isOnline,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        });
     }
 
     window.addEventListener('beforeunload', () => {
@@ -586,7 +504,6 @@ testFirestoreAccess();
     if(localStorage.getItem('yv_theme') === 'dark') document.body.classList.add('dark');
 
     function showPage(id) {
-        console.log('📄 Переход на страницу:', id);
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById('page-' + id).classList.add('active-page');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -600,7 +517,6 @@ testFirestoreAccess();
     }
 
     function openModal(id) { 
-        console.log('🪟 Открытие модального окна:', id);
         if(id === 'modal-post') {
             editingAdId = null;
             document.getElementById('modal-post-title').innerText = "Новое объявление";
@@ -618,14 +534,9 @@ testFirestoreAccess();
         if(!file || !file.files || file.files.length === 0) return '';
         let fd = new FormData(); 
         fd.append("image", file.files[0]);
-        try {
-            let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
-            let d = await r.json(); 
-            return d.data?.url || '';
-        } catch(e) {
-            console.error('Ошибка загрузки фото:', e);
-            return '';
-        }
+        let r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API}`, {method:"POST", body:fd});
+        let d = await r.json(); 
+        return d.data?.url || '';
     }
 
     async function uploadNewAvatar(input) {
@@ -676,7 +587,6 @@ testFirestoreAccess();
     }
 
     async function submitAd() {
-        console.log('📤 Публикация объявления...');
         const btn = document.getElementById('sendAdBtn');
         btn.disabled = true; btn.innerText = "Сохранение...";
         
@@ -730,25 +640,11 @@ testFirestoreAccess();
     }
 
     function loadFeed() {
-        console.log('🔄 Загрузка объявлений...');
-        db.collection('ads').where('status','==','active')
-          .orderBy('createdAt','desc')
-          .onSnapshot(snap => {
-                console.log('📦 Получено объявлений:', snap.size);
-                rawAds = [];
-                snap.forEach(d => {
-                    const data = d.data();
-                    rawAds.push({id: d.id, ...data});
-                });
-                renderAds(rawAds.sort(() => Math.random() - 0.5));
-            }, error => {
-                console.error('❌ Ошибка загрузки объявлений:', error.code, error.message);
-                document.getElementById('ads-grid').innerHTML = 
-                    `<p style="color:var(--red);padding:20px;text-align:center;">
-                        ❌ Ошибка: ${error.code}<br>${error.message}<br>
-                        <small>Проверь Firestore Rules и индексы</small>
-                    </p>`;
-            });
+        db.collection('ads').where('status','==','active').onSnapshot(snap => {
+            rawAds = [];
+            snap.forEach(d => rawAds.push({id: d.id, ...d.data()}));
+            renderAds(rawAds.sort(() => Math.random() - 0.5));
+        });
     }
 
     function renderAds(arr) {
@@ -775,7 +671,6 @@ testFirestoreAccess();
     }
 
     async function openAd(id) {
-        console.log('👁 Открытие объявления:', id);
         const d = await db.collection('ads').doc(id).get();
         const ad = d.data();
         
@@ -863,10 +758,11 @@ testFirestoreAccess();
         });
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ: НОВЫЙ ЧАТ С УНИКАЛЬНЫМ ID ===
     async function startNewChat(otherId, otherName, otherAvatar, adId = null) {
-        console.log('💬 Новый чат:', otherId, adId);
         if(otherId === user.uid) { alert("Это ваше объявление."); return; }
         
+        // Генерируем УНИКАЛЬНЫЙ ID для чата (не на основе UID), чтобы после удаления начинался новый
         const uniqueChatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         
         const chatRef = db.collection('chat_list').doc(uniqueChatId);
@@ -881,15 +777,10 @@ testFirestoreAccess();
             createdAt: new Date()
         };
         
-        try {
-            await chatRef.set(chatData);
-            console.log('✅ Чат создан:', uniqueChatId);
-            currentAdId = adId;
-            openChatWindow(uniqueChatId, otherName, otherId, false, otherAvatar, adId);
-        } catch(e) {
-            console.error('❌ Ошибка создания чата:', e);
-            alert('Ошибка: ' + e.message);
-        }
+        await chatRef.set(chatData);
+        
+        currentAdId = adId;
+        openChatWindow(uniqueChatId, otherName, otherId, false, otherAvatar, adId);
     }
 
     function openSupport() {
@@ -909,6 +800,7 @@ testFirestoreAccess();
         }
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ: ДАТА + ВРЕМЯ ПО МОСКВЕ ===
     function formatMoscowTime(timestamp) {
         if(!timestamp) return '';
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -936,7 +828,6 @@ testFirestoreAccess();
     }
 
     function openChatWindow(chatId, title, targetUid, isSupport, avatarUrl = '', adId = null) {
-        console.log('🪟 Открытие чата:', chatId);
         currentChatId = chatId;
         chatTargetUid = targetUid;
         chatTargetName = title;
@@ -964,6 +855,7 @@ testFirestoreAccess();
         document.getElementById('chat-last-seen').innerText = "";
         openModal('modal-chat');
         
+        // === ИСПРАВЛЕНИЕ: Показываем контекст объявления для ОБЕИХ сторон ===
         if(adId && !isSupport) {
             db.collection('ads').doc(adId).get().then(doc => {
                 if(doc.exists) {
@@ -1055,6 +947,7 @@ testFirestoreAccess();
         document.getElementById('chat-dropdown').classList.toggle('show');
     }
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ УДАЛЕНИЯ: Полное удаление чата ===
     async function actionChat(action) {
         if(!currentChatId || isSupportMode) return;
         document.getElementById('chat-dropdown').classList.remove('show');
@@ -1078,20 +971,19 @@ testFirestoreAccess();
         }
         else if(action === 'delete') {
             if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
-                try {
-                    const messagesRef = db.collection('chats').doc(currentChatId).collection('messages');
-                    const batch = db.batch();
-                    const messagesSnap = await messagesRef.get();
-                    messagesSnap.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                    await chatRef.delete();
-                    closeModal('modal-chat');
-                    loadChatsList();
-                    alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
-                } catch(e) {
-                    console.error('Ошибка удаления:', e);
-                    alert('Ошибка: ' + e.message);
-                }
+                // === ПОЛНОЕ УДАЛЕНИЕ: чат + все сообщения ===
+                const messagesRef = db.collection('chats').doc(currentChatId).collection('messages');
+                const batch = db.batch();
+                
+                const messagesSnap = await messagesRef.get();
+                messagesSnap.forEach(doc => batch.delete(doc.ref));
+                
+                await batch.commit();
+                await chatRef.delete();
+                
+                closeModal('modal-chat');
+                loadChatsList();
+                alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
             }
         }
     }
@@ -1109,6 +1001,7 @@ testFirestoreAccess();
                     let msgText = match[2];
                     let tUid = supportNameMap[tName];
                     if(!tUid) { alert("Пользователь не найден."); return; }
+                    
                     await db.collection('support').add({
                         text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
                     });
@@ -1125,15 +1018,10 @@ testFirestoreAccess();
                 alert('❌ Чат заблокирован. Вы не можете отправлять сообщения.');
                 return;
             }
-            try {
-                await db.collection('chats').doc(currentChatId).collection('messages').add({
-                    text: text, senderId: user.uid, time: new Date()
-                });
-                await db.collection('chat_list').doc(currentChatId).update({ lastUpdate: new Date() });
-            } catch(e) {
-                console.error('Ошибка отправки:', e);
-                alert('Ошибка: ' + e.message);
-            }
+            await db.collection('chats').doc(currentChatId).collection('messages').add({
+                text: text, senderId: user.uid, time: new Date()
+            });
+            await db.collection('chat_list').doc(currentChatId).update({ lastUpdate: new Date() });
         }
         inp.value = '';
     }
@@ -1174,9 +1062,6 @@ testFirestoreAccess();
             }
             
             document.getElementById('user-chats-list').innerHTML = (pinned.join('') + normal.join('')) || '<p>Нет активных диалогов</p>';
-        }, error => {
-            console.error('Ошибка загрузки чатов:', error);
-            document.getElementById('user-chats-list').innerHTML = '<p style="color:var(--red)">Ошибка: ' + error.message + '</p>';
         });
     }
 
@@ -1515,6 +1400,7 @@ testFirestoreAccess();
         await db.collection('reports_review').doc(reportId).update({status: 'resolved'});
         alert("Отзыв удален, рейтинг пересчитан!");
     }
+
 </script>
 </body>
 </html>
