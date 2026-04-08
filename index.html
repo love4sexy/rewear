@@ -234,12 +234,65 @@
             padding:10px; display:none; 
         }
 
+        /* === TECHNICAL BREAK OVERLAY === */
+        #tech-break-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            pointer-events: all;
+        }
+        #tech-break-overlay.active {
+            display: flex;
+        }
+        .tech-break-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .tech-break-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ff9500;
+        }
+        .tech-break-clock {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .tech-break-desc {
+            font-size: 18px;
+            max-width: 600px;
+            text-align: center;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+
         @media (min-width: 768px) { 
             .bottom-nav { width: 400px; left: 50%; transform: translateX(-50%); } 
         }
     </style>
 </head>
 <body>
+
+<!-- TECHNICAL BREAK OVERLAY -->
+<div id="tech-break-overlay">
+    <div class="tech-break-icon">🔧</div>
+    <div class="tech-break-title">Технический перерыв</div>
+    <div class="tech-break-clock" id="tech-break-clock">00:00:00</div>
+    <div class="tech-break-desc" id="tech-break-desc">
+        Сайт временно недоступен. Приносим извинения за неудобства.
+    </div>
+</div>
 
 <header>
     <div class="head-top">
@@ -318,6 +371,41 @@
 <div id="page-admin" class="page">
     <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад</button>
     <h2>🛡️ Панель Модератора</h2>
+    
+    <!-- ТЕХНИЧЕСКИЙ ПЕРЕРЫВ -->
+    <div class="admin-section" style="border: 2px solid #ff9500;">
+        <h3 style="color: #ff9500; margin-top:0;">🔧 Технический перерыв</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <button class="btn btn-blue" id="btn-enable-break" onclick="enableTechBreak()">Включить перерыв</button>
+            <button class="btn btn-red" id="btn-disable-break" onclick="disableTechBreak()" style="display:none;">Выключить перерыв</button>
+        </div>
+        <div id="tech-break-settings" style="display:none;">
+            <h4>Настройки перерыва:</h4>
+            <label>Описание:</label>
+            <textarea id="tech-break-description" rows="3" placeholder="Например: Перерыв с 18:00 до 10:00 для технических работ"></textarea>
+            
+            <label>Время начала (МСК):</label>
+            <input type="time" id="tech-break-start-time">
+            
+            <label>Время окончания (МСК):</label>
+            <input type="time" id="tech-break-end-time">
+            
+            <label>Дни недели (оставьте пустым для ежедневного):</label>
+            <select id="tech-break-days" multiple style="height: 100px;">
+                <option value="1">Понедельник</option>
+                <option value="2">Вторник</option>
+                <option value="3">Среда</option>
+                <option value="4">Четверг</option>
+                <option value="5">Пятница</option>
+                <option value="6">Суббота</option>
+                <option value="0">Воскресенье</option>
+            </select>
+            <small style="color: var(--gray);">Удерживайте Ctrl/Cmd для выбора нескольких дней</small>
+            
+            <button class="btn btn-blue" style="margin-top: 15px;" onclick="saveTechBreakSettings()">Сохранить настройки</button>
+        </div>
+        <div id="tech-break-status" style="margin-top: 15px; padding: 10px; background: var(--bg); border-radius: 8px;"></div>
+    </div>
     
     <div class="admin-section">
         <h3 style="color: var(--red); margin-top:0;">Управление пользователями</h3>
@@ -542,6 +630,207 @@
     let editingAdId = null;
     let reviewReportTargetId = null;
     let supportNameMap = {};
+    let techBreakInterval = null;
+
+    // === ПРОВЕРКА ТЕХНИЧЕСКОГО ПЕРЕРЫВА ===
+    async function checkTechBreak() {
+        if (!user) return;
+        
+        try {
+            const breakDoc = await db.collection('system').doc('techBreak').get();
+            if (!breakDoc.exists) return;
+            
+            const breakData = breakDoc.data();
+            
+            // Админу показывать не нужно
+            if (user.email === ADMIN_ID) {
+                document.getElementById('tech-break-overlay').classList.remove('active');
+                return;
+            }
+            
+            if (breakData.enabled) {
+                // Показываем перерыв
+                document.getElementById('tech-break-overlay').classList.add('active');
+                document.getElementById('tech-break-desc').innerText = breakData.description || 'Сайт временно недоступен. Приносим извинения за неудобства.';
+                
+                // Запускаем часы
+                if (!techBreakInterval) {
+                    techBreakInterval = setInterval(updateTechBreakClock, 1000);
+                    updateTechBreakClock();
+                }
+                
+                // Проверяем авто-выключение
+                if (breakData.autoDisable && breakData.endTime) {
+                    const now = new Date();
+                    const endTime = new Date(breakData.endTime);
+                    if (now >= endTime) {
+                        await disableTechBreak();
+                    }
+                }
+            } else {
+                // Скрываем перерыв
+                document.getElementById('tech-break-overlay').classList.remove('active');
+                if (techBreakInterval) {
+                    clearInterval(techBreakInterval);
+                    techBreakInterval = null;
+                }
+            }
+        } catch (e) {
+            console.error('Ошибка проверки перерыва:', e);
+        }
+    }
+    
+    function updateTechBreakClock() {
+        const now = new Date();
+        const moscowTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+        const timeStr = moscowTime.toLocaleTimeString('ru-RU');
+        document.getElementById('tech-break-clock').innerText = timeStr;
+    }
+    
+    // === УПРАВЛЕНИЕ ТЕХНИЧЕСКИМ ПЕРЕРЫВОМ ===
+    async function enableTechBreak() {
+        document.getElementById('tech-break-settings').style.display = 'block';
+        document.getElementById('btn-enable-break').style.display = 'none';
+        
+        // Загружаем текущие настройки
+        try {
+            const breakDoc = await db.collection('system').doc('techBreak').get();
+            if (breakDoc.exists) {
+                const data = breakDoc.data();
+                document.getElementById('tech-break-description').value = data.description || '';
+                if (data.startTime) {
+                    document.getElementById('tech-break-start-time').value = data.startTime;
+                }
+                if (data.endTime) {
+                    document.getElementById('tech-break-end-time').value = data.endTime;
+                }
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки настроек:', e);
+        }
+    }
+    
+    async function disableTechBreak() {
+        try {
+            await db.collection('system').doc('techBreak').update({
+                enabled: false,
+                updatedAt: new Date()
+            });
+            document.getElementById('tech-break-overlay').classList.remove('active');
+            document.getElementById('tech-break-settings').style.display = 'none';
+            document.getElementById('btn-enable-break').style.display = 'inline-block';
+            document.getElementById('btn-disable-break').style.display = 'none';
+            if (techBreakInterval) {
+                clearInterval(techBreakInterval);
+                techBreakInterval = null;
+            }
+            alert('✅ Технический перерыв выключен');
+            updateTechBreakStatus();
+        } catch (e) {
+            console.error('Ошибка выключения перерыва:', e);
+            alert('Ошибка: ' + e.message);
+        }
+    }
+    
+    async function saveTechBreakSettings() {
+        const description = document.getElementById('tech-break-description').value.trim();
+        const startTime = document.getElementById('tech-break-start-time').value;
+        const endTime = document.getElementById('tech-break-end-time').value;
+        const daysSelect = document.getElementById('tech-break-days');
+        const selectedDays = Array.from(daysSelect.selectedOptions).map(opt => opt.value);
+        
+        if (!description) {
+            alert('Введите описание перерыва');
+            return;
+        }
+        
+        try {
+            // Рассчитываем время окончания если указано
+            let autoDisable = false;
+            let endDateTime = null;
+            
+            if (endTime) {
+                autoDisable = true;
+                const now = new Date();
+                const moscowTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+                const [hours, minutes] = endTime.split(':');
+                endDateTime = new Date(moscowTime);
+                endDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+                
+                // Если время уже прошло сегодня, ставим на завтра
+                if (endDateTime <= moscowTime) {
+                    endDateTime.setDate(endDateTime.getDate() + 1);
+                }
+            }
+            
+            await db.collection('system').doc('techBreak').set({
+                enabled: true,
+                description: description,
+                startTime: startTime || null,
+                endTime: endDateTime ? endDateTime.toISOString() : null,
+                days: selectedDays,
+                autoDisable: autoDisable,
+                updatedAt: new Date(),
+                updatedBy: user.uid
+            }, { merge: true });
+            
+            document.getElementById('tech-break-overlay').classList.add('active');
+            document.getElementById('tech-break-desc').innerText = description;
+            document.getElementById('btn-disable-break').style.display = 'inline-block';
+            
+            if (!techBreakInterval) {
+                techBreakInterval = setInterval(updateTechBreakClock, 1000);
+                updateTechBreakClock();
+            }
+            
+            alert('✅ Технический перерыв включен!');
+            updateTechBreakStatus();
+        } catch (e) {
+            console.error('Ошибка сохранения:', e);
+            alert('Ошибка: ' + e.message);
+        }
+    }
+    
+    async function updateTechBreakStatus() {
+        try {
+            const breakDoc = await db.collection('system').doc('techBreak').get();
+            if (!breakDoc.exists) {
+                document.getElementById('tech-break-status').innerHTML = '<p style="color: var(--gray);">Перерыв не настроен</p>';
+                return;
+            }
+            
+            const data = breakDoc.data();
+            let html = '<b>Статус:</b> ';
+            
+            if (data.enabled) {
+                html += '<span style="color: var(--red); font-weight: bold;">🔴 ВКЛЮЧЕН</span><br>';
+                html += '<b>Описание:</b> ' + (data.description || 'Не указано') + '<br>';
+                
+                if (data.startTime) {
+                    html += '<b>Время начала:</b> ' + data.startTime + '<br>';
+                }
+                
+                if (data.autoDisable && data.endTime) {
+                    const endDate = new Date(data.endTime);
+                    html += '<b>Авто-выключение:</b> ' + endDate.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + '<br>';
+                }
+                
+                if (data.days && data.days.length > 0) {
+                    const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                    const selectedDayNames = data.days.map(d => dayNames[parseInt(d)]);
+                    html += '<b>Дни:</b> ' + selectedDayNames.join(', ') + '<br>';
+                } else {
+                    html += '<b>Дни:</b> Ежедневно<br>';
+                }
+            } else {
+                html += '<span style="color: var(--green); font-weight: bold;">🟢 ВЫКЛЮЧЕН</span>';
+            }
+            
+            document.getElementById('tech-break-status').innerHTML = html;
+        } catch (e) {
+            console.error('Ошибка обновления статуса:', e);
+        }
+    }
 
     // === АВТОРИЗАЦИЯ ===
     function login() {
@@ -575,9 +864,14 @@
             document.getElementById('auth-btn').style.display = 'none';
             await checkUserDb();
             updateUserOnlineStatus(true);
+            
+            // Проверяем тех. перерыв
+            checkTechBreak();
+            
             if(u.email === ADMIN_ID) {
                 document.getElementById('admin-zone').style.display = 'block';
                 initAdminMod();
+                updateTechBreakStatus();
             }
             loadChatsList();
             loadUnreadNotifications();
@@ -862,9 +1156,10 @@
     function renderAds(arr) {
         let h = '';
         arr.forEach(ad => {
+            const imgUrl = ad.photos && ad.photos.length > 0 ? ad.photos[0] : '';
             h += `
             <div class="card" onclick="openAd('${ad.id}')">
-                <img src="${ad.photos[0] || ''}">
+                <img src="${imgUrl}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EНет фото%3C/text%3E%3C/svg%3E'">
                 <div class="card-body">
                     <div class="price">${ad.price} ₽</div>
                     <div style="font-size:14px; margin:4px 0; height:38px; overflow:hidden;">${ad.title}</div>
@@ -892,7 +1187,15 @@
         let rAvg = authorData.reviewCount > 0 ? (authorData.ratingSum / authorData.reviewCount).toFixed(1) : "0.0";
 
         showPage('view');
-        let imgs = ad.photos.map(p => `<img src="${p}">`).join('');
+        
+        // Исправленное отображение фото
+        let imgs = '';
+        if (ad.photos && ad.photos.length > 0) {
+            imgs = ad.photos.map(p => `<img src="${p}" onerror="this.style.display='none'">`).join('');
+        } else {
+            imgs = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;">Нет фото</div>';
+        }
+        
         document.getElementById('ad-full-content').innerHTML = `
             <div class="gallery-main">${imgs}</div>
             <div class="ad-details">
@@ -934,9 +1237,10 @@
             let h = '';
             snap.forEach(adDoc => {
                 let ad = adDoc.data();
+                const imgUrl = ad.photos && ad.photos.length > 0 ? ad.photos[0] : '';
                 h += `
                 <div class="card" onclick="openAd('${adDoc.id}')">
-                    <img src="${ad.photos[0]}">
+                    <img src="${imgUrl}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EНет фото%3C/text%3E%3C/svg%3E'">
                     <div class="card-body">
                         <div class="price">${ad.price} ₽</div>
                         <div style="font-size:14px; margin:4px 0;">${ad.title}</div>
@@ -955,10 +1259,11 @@
                 const ad = doc.data();
                 let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Отклонено');
                 let clr = ad.status === 'active' ? 'var(--green)' : (ad.status === 'pending' ? '#ff9500' : 'red');
+                const imgUrl = ad.photos && ad.photos.length > 0 ? ad.photos[0] : '';
                 h += `
                 <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; gap:10px; align-items:center;">
-                        <img src="${ad.photos[0]}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                        <img src="${imgUrl}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect fill=%22%23ddd%22 width=%2250%22 height=%2250%22/%3E%3C/svg%3E'">
                         <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
                     </div>
                     <div>
@@ -1081,7 +1386,7 @@
                 if(doc.exists) {
                     const ad = doc.data();
                     document.getElementById('chat-ad-context').style.display = 'flex';
-                    document.getElementById('chat-ad-img').src = ad.photos[0] || '';
+                    document.getElementById('chat-ad-img').src = ad.photos && ad.photos.length > 0 ? ad.photos[0] : '';
                     document.getElementById('chat-ad-title').innerText = ad.title;
                     document.getElementById('chat-ad-price').innerText = `${ad.price} ₽`;
                 }
@@ -1517,14 +1822,17 @@
             let h = '';
             snap.forEach(doc => {
                 let d = doc.data();
-                // Проверка что photos существует
-                let imgs = d.photos && d.photos.length > 0 
-                    ? d.photos.map(p => `<img src="${p}">`).join('')
-                    : '<p style="color:var(--gray)">Нет фото</p>';
+                // Проверка что photos существует и это массив
+                let imgs = '';
+                if (d.photos && Array.isArray(d.photos) && d.photos.length > 0) {
+                    imgs = d.photos.map(p => `<img src="${p}" onerror="this.style.display='none'" title="Ошибка загрузки">`).join('');
+                } else {
+                    imgs = '<p style="color:var(--gray);padding:20px;text-align:center;">❌ Нет фото в объявлении</p>';
+                }
                 
                 h += `<div class="mod-card">
                     <b>${d.title}</b> (${d.price} ₽)<br>
-                    <small>UID автора: ${d.authorId}</small><br>${d.desc}<br>
+                    <small>UID автора: ${d.authorId}</small><br>${d.desc || 'Нет описания'}<br>
                     <div class="mod-gallery">${imgs}</div>
                     <button class="btn btn-blue" onclick="approveAd('${doc.id}')">✅ Одобрить</button>
                     <button class="btn btn-red" onclick="rejectAd('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
@@ -1573,7 +1881,7 @@
             let h = '';
             snap.forEach(doc => {
                 let d = doc.data();
-                let imgs = d.photos && d.photos.length > 0 ? d.photos.map(p => `<img src="${p}">`).join('') : '';
+                let imgs = d.photos && Array.isArray(d.photos) && d.photos.length > 0 ? d.photos.map(p => `<img src="${p}">`).join('') : '';
                 h += `<div class="mod-card">
                     <b>Жалоба на отзыв (ID: ${d.reviewId})</b><br>
                     <small>UID жалующегося: ${d.reporterId}</small><br>
@@ -1588,7 +1896,7 @@
         });
     }
 
-    // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ОДОБРЕНИЯ/ОТКЛОНЕНИЯ (не внутри initAdminMod!) ===
+    // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ОДОБРЕНИЯ/ОТКЛОНЕНИЯ ===
     async function approveAd(adId) {
         try {
             await db.collection('ads').doc(adId).update({
