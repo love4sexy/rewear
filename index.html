@@ -1111,8 +1111,8 @@
         }
         
         let msgRef = isSupport 
-            ? db.collection('support').orderBy('time') 
-            : db.collection('chats').doc(currentChatId).collection('messages').orderBy('time');
+    ? db.collection('support').orderBy('time') 
+    : db.collection('chat_list').doc(currentChatId).collection('messages').orderBy('time');
 
         if(window.currentChatListener) window.currentChatListener();
 
