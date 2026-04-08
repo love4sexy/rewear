@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Lookup Маркетплейс</title>
     
-    <!-- Firebase Compat SDK (работает везде) -->
+    <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -520,7 +520,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // Пробуем включить persistence, но не блокируем если не получится
     db.enablePersistence().catch(err => {
         console.log('ℹ️ Persistence не поддерживается:', err.code);
     });
@@ -544,12 +543,10 @@
     let reviewReportTargetId = null;
     let supportNameMap = {};
 
-    // === АВТОРИЗАЦИЯ — РАБОТАЕТ НА ПК И ТЕЛЕФОНЕ ===
+    // === АВТОРИЗАЦИЯ ===
     function login() {
         console.log('🔐 Вход через Google...');
         const provider = new firebase.auth.GoogleAuthProvider();
-        
-        // Мобильные браузеры не поддерживают popup — используем redirect
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         if (isMobile) {
@@ -561,7 +558,6 @@
         }
     }
 
-    // Обработка возврата после редиректа (для мобильных)
     auth.getRedirectResult().then(result => {
         if (result.user) {
             console.log('✅ Успешный вход после редиректа:', result.user.email);
@@ -571,7 +567,6 @@
         alert('Ошибка входа: ' + error.message);
     });
 
-    // Слушаем изменения авторизации
     auth.onAuthStateChanged(async u => {
         console.log('🔄 authStateChanged:', u ? u.uid : 'null');
         
@@ -626,7 +621,6 @@
             }
         } catch(e) {
             console.error('❌ Ошибка проверки пользователя:', e);
-            // Пробуем создать профиль даже если ошибка
             try {
                 await ref.set({
                     name: user.displayName || 'Пользователь',
@@ -679,7 +673,6 @@
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             });
         } catch(e) {
-            // Игнорируем ошибки — это не критично
             console.log('ℹ️ Не удалось обновить статус онлайн');
         }
     }
@@ -808,7 +801,8 @@
             loc: document.getElementById('post-loc').value,
             desc: document.getElementById('post-desc').value,
             status: 'pending',
-            time: new Date()
+            createdAt: new Date(),
+            updatedAt: new Date()
         };
 
         if(editingAdId) {
@@ -1111,8 +1105,8 @@
         }
         
         let msgRef = isSupport 
-    ? db.collection('support').orderBy('time') 
-    : db.collection('chat_list').doc(currentChatId).collection('messages').orderBy('time');
+            ? db.collection('support').orderBy('time') 
+            : db.collection('chat_list').doc(currentChatId).collection('messages').orderBy('time');
 
         if(window.currentChatListener) window.currentChatListener();
 
@@ -1120,11 +1114,22 @@
             db.collection('chat_list').doc(chatId).onSnapshot(s => {
                 if(!s.exists) { closeModal('modal-chat'); alert("Чат удален."); return; }
                 currentChatData = s.data();
-                currentChatBlocked = currentChatData.blocked;
+                
+                const blockedBy = currentChatData?.blockedBy || null;
+                const isBlockedByMe = blockedBy === user.uid;
+                const isBlockedByOther = blockedBy && blockedBy !== user.uid;
+                
+                const canWrite = !isBlockedByMe && !isBlockedByOther;
+                
+                currentChatBlocked = !canWrite;
+                
                 document.getElementById('msg-input').disabled = currentChatBlocked;
                 document.getElementById('msg-send-btn').disabled = currentChatBlocked;
-                if(currentChatBlocked) {
-                    document.getElementById('chat-status').innerText = "🚫 Чат заблокирован";
+                
+                if(isBlockedByMe) {
+                    document.getElementById('chat-status').innerText = "🚫 Вы заблокировали этот чат";
+                } else if(isBlockedByOther) {
+                    document.getElementById('chat-status').innerText = "🚫 Чат заблокирован собеседником";
                 } else {
                     document.getElementById('chat-status').innerText = "";
                 }
@@ -1174,118 +1179,125 @@
     }
 
     async function actionChat(action) {
-    if(!currentChatId || isSupportMode) return;
-    document.getElementById('chat-dropdown').classList.remove('show');
-    
-    const chatRef = db.collection('chat_list').doc(currentChatId);
-    
-    if(action === 'pin') {
-        const current = currentChatData?.pinned?.[user.uid] || false;
-        await chatRef.update({ [`pinned.${user.uid}`]: !current });
-        loadChatsList();
-    }
-    else if(action === 'mute') {
-        const current = currentChatData?.muted?.[user.uid] || false;
-        await chatRef.update({ [`muted.${user.uid}`]: !current });
-        loadChatsList();
-    }
-    else if(action === 'block') {
-        const current = currentChatData?.blocked || false;
-        await chatRef.update({ blocked: !current });
-        alert(current ? 'Чат разблокирован' : 'Чат заблокирован');
-    }
-    else if(action === 'delete') {
-        if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
-            try {
-                // Сначала удаляем все сообщения
-                const messagesRef = db.collection('chat_list').doc(currentChatId).collection('messages');
-                const messagesSnap = await messagesRef.get();
-                
-                // Удаляем сообщения по одному (batch может не работать на мобильных)
-                for(let doc of messagesSnap.docs) {
-                    await doc.ref.delete();
+        if(!currentChatId || isSupportMode) return;
+        document.getElementById('chat-dropdown').classList.remove('show');
+        
+        const chatRef = db.collection('chat_list').doc(currentChatId);
+        
+        if(action === 'pin') {
+            const current = currentChatData?.pinned?.[user.uid] || false;
+            await chatRef.update({ [`pinned.${user.uid}`]: !current });
+            loadChatsList();
+        }
+        else if(action === 'mute') {
+            const current = currentChatData?.muted?.[user.uid] || false;
+            await chatRef.update({ [`muted.${user.uid}`]: !current });
+            loadChatsList();
+        }
+        else if(action === 'block') {
+            const blockedBy = currentChatData?.blockedBy || null;
+            
+            if(blockedBy === user.uid) {
+                await chatRef.update({ blockedBy: null, blockedAt: null });
+                alert('✅ Чат разблокирован');
+            } else if(!blockedBy) {
+                await chatRef.update({ blockedBy: user.uid, blockedAt: new Date() });
+                alert('🚫 Чат заблокирован. Только вы можете его разблокировать.');
+            } else {
+                alert('ℹ️ Чат уже заблокирован другим участником');
+            }
+            loadChatsList();
+        }
+        else if(action === 'delete') {
+            if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
+                try {
+                    const messagesRef = db.collection('chat_list').doc(currentChatId).collection('messages');
+                    const messagesSnap = await messagesRef.get();
+                    
+                    for(let doc of messagesSnap.docs) {
+                        await doc.ref.delete();
+                    }
+                    
+                    await chatRef.delete();
+                    
+                    closeModal('modal-chat');
+                    loadChatsList();
+                    alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
+                } catch(e) {
+                    console.error('Ошибка удаления:', e);
+                    alert('Ошибка: ' + e.message + '\n\nПроверь Firestore Rules!');
                 }
-                
-                // Затем удаляем сам чат
-                await chatRef.delete();
-                
-                closeModal('modal-chat');
-                loadChatsList();
-                alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
-            } catch(e) {
-                console.error('Ошибка удаления:', e);
-                alert('Ошибка: ' + e.message + '\n\nПроверь Firestore Rules!');
             }
         }
     }
-}
 
-async function sendChatMessage() {
-    const inp = document.getElementById('msg-input');
-    const text = inp.value.trim();
-    if(!text) return;
+    async function sendChatMessage() {
+        const inp = document.getElementById('msg-input');
+        const text = inp.value.trim();
+        if(!text) return;
 
-    console.log('📤 Отправка сообщения...', text);
+        console.log('📤 Отправка сообщения...', text);
 
-    if(isSupportMode) {
-        if(user.email === ADMIN_ID) {
-            let match = text.match(/^@([^\s]+)\s+(.*)$/);
-            if(match) {
-                let tName = match[1];
-                let msgText = match[2];
-                let tUid = supportNameMap[tName];
-                if(!tUid) { alert("Пользователь не найден."); return; }
-                
+        if(isSupportMode) {
+            if(user.email === ADMIN_ID) {
+                let match = text.match(/^@([^\s]+)\s+(.*)$/);
+                if(match) {
+                    let tName = match[1];
+                    let msgText = match[2];
+                    let tUid = supportNameMap[tName];
+                    if(!tUid) { alert("Пользователь не найден."); return; }
+                    
+                    try {
+                        await db.collection('support').add({
+                            text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
+                        });
+                        console.log('✅ Сообщение поддержки отправлено');
+                    } catch(e) {
+                        console.error('❌ Ошибка:', e);
+                        alert('Ошибка: ' + e.message);
+                    }
+                } else {
+                    alert("Формат ответа: @Ник Ваш текст"); return;
+                }
+            } else {
                 try {
                     await db.collection('support').add({
-                        text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
+                        text: text, uid: user.uid, name: userData.name, time: new Date()
                     });
-                    console.log('✅ Сообщение поддержки отправлено');
+                    console.log('✅ Сообщение в поддержку отправлено');
                 } catch(e) {
                     console.error('❌ Ошибка:', e);
                     alert('Ошибка: ' + e.message);
                 }
-            } else {
-                alert("Формат ответа: @Ник Ваш текст"); return;
             }
         } else {
+            if(currentChatBlocked) {
+                alert('❌ Чат заблокирован. Вы не можете отправлять сообщения.');
+                return;
+            }
+            
             try {
-                await db.collection('support').add({
-                    text: text, uid: user.uid, name: userData.name, time: new Date()
+                await db.collection('chat_list').doc(currentChatId).collection('messages').add({
+                    text: text, 
+                    senderId: user.uid, 
+                    senderName: userData.name,
+                    time: new Date()
                 });
-                console.log('✅ Сообщение в поддержку отправлено');
+                
+                await db.collection('chat_list').doc(currentChatId).update({ 
+                    lastUpdate: new Date() 
+                });
+                
+                console.log('✅ Сообщение отправлено');
             } catch(e) {
-                console.error('❌ Ошибка:', e);
-                alert('Ошибка: ' + e.message);
+                console.error('❌ Ошибка отправки:', e);
+                alert('Ошибка отправки: ' + e.message + '\n\nПроверь консоль (?debug=1)');
             }
         }
-    } else {
-        if(currentChatBlocked) {
-            alert('❌ Чат заблокирован. Вы не можете отправлять сообщения.');
-            return;
-        }
-        
-        try {
-            await db.collection('chat_list').doc(currentChatId).collection('messages').add({
-                text: text, 
-                senderId: user.uid, 
-                senderName: userData.name,
-                time: new Date()
-            });
-            
-            await db.collection('chat_list').doc(currentChatId).update({ 
-                lastUpdate: new Date() 
-            });
-            
-            console.log('✅ Сообщение отправлено');
-        } catch(e) {
-            console.error('❌ Ошибка отправки:', e);
-            alert('Ошибка отправки: ' + e.message + '\n\nПроверь консоль (?debug=1)');
-        }
+        inp.value = '';
     }
-    inp.value = '';
-}
 
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ loadChatsList ===
     function loadChatsList() {
         if(!user) return;
         db.collection('chat_list').where('participants', 'array-contains', user.uid)
@@ -1304,6 +1316,10 @@ async function sendChatMessage() {
                 let isPinned = d.pinned?.[user.uid] || false;
                 let isMuted = d.muted?.[user.uid] || false;
                 
+                // === ИСПРАВЛЕНИЕ: isBlocked ВНУТРИ цикла, после получения d и otherId ===
+                let isBlocked = d.blockedBy === user.uid || d.blockedBy === otherId;
+                let blockIcon = isBlocked ? ' 🚫' : '';
+                
                 let html = `
                 <div class="chat-list-item ${isPinned ? 'pinned' : ''} ${isMuted ? 'muted' : ''}" onclick="openChatWindow('${docSnap.id}', '${uName}', '${otherId}', false, '${uAva}', '${d.adId || ''}')">
                     <div class="chat-avatar-wrapper">
@@ -1311,7 +1327,7 @@ async function sendChatMessage() {
                         <div class="online-dot ${uOnline ? 'online' : 'offline'}"></div>
                     </div>
                     <div class="chat-info">
-                        <b>${uName}</b>
+                        <b>${uName}${blockIcon}</b>
                         ${isPinned ? '<span class="chat-pin-icon">📌</span>' : ''}
                     </div>
                     <span class="chat-menu-btn" onclick="event.stopPropagation(); openChatMenu(event, '${docSnap.id}')">⋮</span>
@@ -1464,7 +1480,9 @@ async function sendChatMessage() {
         closeModal('modal-report-review');
     }
 
+    // === ИСПРАВЛЕННАЯ initAdminMod - БЕЗ ДУБЛИКАТОВ ===
     function initAdminMod() {
+        // Аватарки на модерации
         db.collection('users').where('pendingAva', '!=', null).onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -1478,6 +1496,7 @@ async function sendChatMessage() {
             document.getElementById('mod-avas').innerHTML = h || 'Нет фото на проверке';
         });
 
+        // Никнеймы на модерации
         db.collection('users').where('pendingName', '!=', null).onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -1493,22 +1512,28 @@ async function sendChatMessage() {
             document.getElementById('mod-names').innerHTML = h || 'Нет никнеймов на проверке';
         });
 
+        // === ОБЪЯВЛЕНИЯ НА МОДЕРАЦИИ - ОДИН ОБРАБОТЧИК С ПРОВЕРКОЙ ФОТО ===
         db.collection('ads').where('status', '==', 'pending').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
                 let d = doc.data();
-                let imgs = d.photos.map(p => `<img src="${p}">`).join('');
+                // Проверка что photos существует
+                let imgs = d.photos && d.photos.length > 0 
+                    ? d.photos.map(p => `<img src="${p}">`).join('')
+                    : '<p style="color:var(--gray)">Нет фото</p>';
+                
                 h += `<div class="mod-card">
                     <b>${d.title}</b> (${d.price} ₽)<br>
                     <small>UID автора: ${d.authorId}</small><br>${d.desc}<br>
                     <div class="mod-gallery">${imgs}</div>
-                    <button class="btn btn-blue" onclick="db.collection('ads').doc('${doc.id}').update({status:'active'})">✅ Одобрить</button>
-                    <button class="btn btn-red" onclick="db.collection('ads').doc('${doc.id}').update({status:'rejected'})" style="margin-top:5px;">❌ Отклонить</button>
+                    <button class="btn btn-blue" onclick="approveAd('${doc.id}')">✅ Одобрить</button>
+                    <button class="btn btn-red" onclick="rejectAd('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
                 </div>`;
             });
             document.getElementById('mod-ads').innerHTML = h || 'Нет объявлений на проверке';
         });
 
+        // Отзывы на проверку
         db.collection('reviews_mod').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -1527,6 +1552,7 @@ async function sendChatMessage() {
             document.getElementById('mod-reviews-verify').innerHTML = h || 'Нет отзывов на проверке';
         });
 
+        // Жалобы на пользователей
         db.collection('reports_user').where('status','==','new').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -1542,11 +1568,12 @@ async function sendChatMessage() {
             document.getElementById('mod-user-reports').innerHTML = h || 'Нет новых жалоб';
         });
 
+        // Жалобы на отзывы
         db.collection('reports_review').where('status','==','new').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
                 let d = doc.data();
-                let imgs = d.photos.map(p => `<img src="${p}">`).join('');
+                let imgs = d.photos && d.photos.length > 0 ? d.photos.map(p => `<img src="${p}">`).join('') : '';
                 h += `<div class="mod-card">
                     <b>Жалоба на отзыв (ID: ${d.reviewId})</b><br>
                     <small>UID жалующегося: ${d.reporterId}</small><br>
@@ -1559,6 +1586,33 @@ async function sendChatMessage() {
             });
             document.getElementById('mod-review-reports').innerHTML = h || 'Нет заявок на удаление отзывов';
         });
+    }
+
+    // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ОДОБРЕНИЯ/ОТКЛОНЕНИЯ (не внутри initAdminMod!) ===
+    async function approveAd(adId) {
+        try {
+            await db.collection('ads').doc(adId).update({
+                status: 'active',
+                approvedAt: new Date()
+            });
+            alert('✅ Объявление одобрено и опубликовано!');
+        } catch(e) {
+            console.error('Ошибка одобрения:', e);
+            alert('Ошибка: ' + e.message);
+        }
+    }
+
+    async function rejectAd(adId) {
+        try {
+            await db.collection('ads').doc(adId).update({
+                status: 'rejected',
+                rejectedAt: new Date()
+            });
+            alert('❌ Объявление отклонено');
+        } catch(e) {
+            console.error('Ошибка отклонения:', e);
+            alert('Ошибка: ' + e.message);
+        }
     }
 
     function approveAva(id, url) { db.collection('users').doc(id).update({ avatar: url, pendingAva: firebase.firestore.FieldValue.delete() }); }
@@ -1610,7 +1664,7 @@ async function sendChatMessage() {
         });
         alert("Пользователь заблокирован!");
     }
-
+    
     async function adminUnbanUser() {
         let uid = document.getElementById('admin-target-uid').value.trim();
         if(!uid) return alert("Введите UID!");
