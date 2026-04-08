@@ -459,6 +459,25 @@
         alert('Ошибка входа: ' + error.message);
     });
 
+    // === ПРОВЕРКА ДОСТУПА ПРИ ВХОДЕ ===
+async function testFirestoreAccess() {
+    try {
+        // Пробуем прочитать 1 документ из users (публичный доступ)
+        await db.collection('users').limit(1).get();
+        console.log('✅ Firestore доступен');
+        return true;
+    } catch(e) {
+        console.error('❌ Firestore ошибка:', e.code, e.message);
+        if(e.code === 'permission-denied') {
+            alert('⚠️ Ошибка прав доступа. Проверь Firestore Rules!');
+        }
+        return false;
+    }
+}
+
+// Вызываем после инициализации
+testFirestoreAccess();
+    
     auth.onAuthStateChanged(async u => {
         console.log('🔄 authStateChanged:', u ? u.uid : 'null');
         
