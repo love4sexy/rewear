@@ -1220,47 +1220,71 @@
     }
 }
 
-    async function sendChatMessage() {
-        const inp = document.getElementById('msg-input');
-        const text = inp.value.trim();
-        if(!text) return;
+async function sendChatMessage() {
+    const inp = document.getElementById('msg-input');
+    const text = inp.value.trim();
+    if(!text) return;
 
-        if(isSupportMode) {
-            if(user.email === ADMIN_ID) {
-                let match = text.match(/^@([^\s]+)\s+(.*)$/);
-                if(match) {
-                    let tName = match[1];
-                    let msgText = match[2];
-                    let tUid = supportNameMap[tName];
-                    if(!tUid) { alert("Пользователь не найден."); return; }
+    console.log('📤 Отправка сообщения...', text);
+
+    if(isSupportMode) {
+        if(user.email === ADMIN_ID) {
+            let match = text.match(/^@([^\s]+)\s+(.*)$/);
+            if(match) {
+                let tName = match[1];
+                let msgText = match[2];
+                let tUid = supportNameMap[tName];
+                if(!tUid) { alert("Пользователь не найден."); return; }
+                
+                try {
                     await db.collection('support').add({
                         text: msgText, fromAdmin: true, targetUid: tUid, time: new Date()
                     });
-                } else {
-                    alert("Формат ответа: @Ник Ваш текст"); return;
+                    console.log('✅ Сообщение поддержки отправлено');
+                } catch(e) {
+                    console.error('❌ Ошибка:', e);
+                    alert('Ошибка: ' + e.message);
                 }
             } else {
+                alert("Формат ответа: @Ник Ваш текст"); return;
+            }
+        } else {
+            try {
                 await db.collection('support').add({
                     text: text, uid: user.uid, name: userData.name, time: new Date()
                 });
-            }
-        } else {
-            if(currentChatBlocked) {
-                alert('❌ Чат заблокирован. Вы не можете отправлять сообщения.');
-                return;
-            }
-            try {
-                await db.collection('chats').doc(currentChatId).collection('messages').add({
-                    text: text, senderId: user.uid, time: new Date()
-                });
-                await db.collection('chat_list').doc(currentChatId).update({ lastUpdate: new Date() });
+                console.log('✅ Сообщение в поддержку отправлено');
             } catch(e) {
-                console.error('Ошибка отправки:', e);
+                console.error('❌ Ошибка:', e);
                 alert('Ошибка: ' + e.message);
             }
         }
-        inp.value = '';
+    } else {
+        if(currentChatBlocked) {
+            alert('❌ Чат заблокирован. Вы не можете отправлять сообщения.');
+            return;
+        }
+        
+        try {
+            await db.collection('chat_list').doc(currentChatId).collection('messages').add({
+                text: text, 
+                senderId: user.uid, 
+                senderName: userData.name,
+                time: new Date()
+            });
+            
+            await db.collection('chat_list').doc(currentChatId).update({ 
+                lastUpdate: new Date() 
+            });
+            
+            console.log('✅ Сообщение отправлено');
+        } catch(e) {
+            console.error('❌ Ошибка отправки:', e);
+            alert('Ошибка отправки: ' + e.message + '\n\nПроверь консоль (?debug=1)');
+        }
     }
+    inp.value = '';
+}
 
     function loadChatsList() {
         if(!user) return;
