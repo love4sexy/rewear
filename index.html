@@ -1174,45 +1174,51 @@
     }
 
     async function actionChat(action) {
-        if(!currentChatId || isSupportMode) return;
-        document.getElementById('chat-dropdown').classList.remove('show');
-        
-        const chatRef = db.collection('chat_list').doc(currentChatId);
-        
-        if(action === 'pin') {
-            const current = currentChatData?.pinned?.[user.uid] || false;
-            await chatRef.update({ [`pinned.${user.uid}`]: !current });
-            loadChatsList();
-        }
-        else if(action === 'mute') {
-            const current = currentChatData?.muted?.[user.uid] || false;
-            await chatRef.update({ [`muted.${user.uid}`]: !current });
-            loadChatsList();
-        }
-        else if(action === 'block') {
-            const current = currentChatData?.blocked || false;
-            await chatRef.update({ blocked: !current });
-            alert(current ? 'Чат разблокирован' : 'Чат заблокирован');
-        }
-        else if(action === 'delete') {
-            if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
-                try {
-                    const messagesRef = db.collection('chats').doc(currentChatId).collection('messages');
-                    const batch = db.batch();
-                    const messagesSnap = await messagesRef.get();
-                    messagesSnap.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                    await chatRef.delete();
-                    closeModal('modal-chat');
-                    loadChatsList();
-                    alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
-                } catch(e) {
-                    console.error('Ошибка удаления:', e);
-                    alert('Ошибка: ' + e.message);
+    if(!currentChatId || isSupportMode) return;
+    document.getElementById('chat-dropdown').classList.remove('show');
+    
+    const chatRef = db.collection('chat_list').doc(currentChatId);
+    
+    if(action === 'pin') {
+        const current = currentChatData?.pinned?.[user.uid] || false;
+        await chatRef.update({ [`pinned.${user.uid}`]: !current });
+        loadChatsList();
+    }
+    else if(action === 'mute') {
+        const current = currentChatData?.muted?.[user.uid] || false;
+        await chatRef.update({ [`muted.${user.uid}`]: !current });
+        loadChatsList();
+    }
+    else if(action === 'block') {
+        const current = currentChatData?.blocked || false;
+        await chatRef.update({ blocked: !current });
+        alert(current ? 'Чат разблокирован' : 'Чат заблокирован');
+    }
+    else if(action === 'delete') {
+        if(confirm('Вы точно хотите удалить чат? Его невозможно будет восстановить. Все сообщения будут удалены у обоих собеседников.')) {
+            try {
+                // Сначала удаляем все сообщения
+                const messagesRef = db.collection('chat_list').doc(currentChatId).collection('messages');
+                const messagesSnap = await messagesRef.get();
+                
+                // Удаляем сообщения по одному (batch может не работать на мобильных)
+                for(let doc of messagesSnap.docs) {
+                    await doc.ref.delete();
                 }
+                
+                // Затем удаляем сам чат
+                await chatRef.delete();
+                
+                closeModal('modal-chat');
+                loadChatsList();
+                alert('✅ Чат полностью удален. При новом сообщении начнется новый диалог.');
+            } catch(e) {
+                console.error('Ошибка удаления:', e);
+                alert('Ошибка: ' + e.message + '\n\nПроверь Firestore Rules!');
             }
         }
     }
+}
 
     async function sendChatMessage() {
         const inp = document.getElementById('msg-input');
