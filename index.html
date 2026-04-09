@@ -24,6 +24,11 @@
             background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; 
             transition: 0.2s; -webkit-tap-highlight-color: transparent; 
             overscroll-behavior: none;
+            /* === НОВОЕ: защита от выделения === */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
         /* === HEADER === */
@@ -70,7 +75,16 @@
             display: flex; flex-direction: column; -webkit-tap-highlight-color: transparent; 
         }
         .card:active { transform: scale(0.98); }
-        .card img { width: 100%; height: 170px; object-fit: cover; background: #eee; }
+        /* === НОВОЕ: защита фото от скачивания и перетаскивания === */
+        .card img { 
+            width: 100%; height: 170px; object-fit: cover; background: #eee;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+        }
         .card-body { padding: 12px; }
         .price { font-size: 18px; font-weight: 800; color: var(--text); }
 
@@ -84,7 +98,13 @@
             padding: 15px; border-radius: 12px; margin-bottom: 10px; color: var(--text); 
         }
         .mod-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
-        .mod-gallery img { height: 120px; border-radius: 5px; object-fit: contain; background: #000; }
+        /* === НОВОЕ: защита фото в модерации === */
+        .mod-gallery img { 
+            height: 120px; border-radius: 5px; object-fit: contain; background: #000;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-drag: none;
+        }
         .admin-section { 
             margin-top: 20px; padding: 15px; background: var(--card); 
             border: 1px solid var(--border); border-radius: 12px; 
@@ -99,7 +119,13 @@
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory; 
             background: #000; height: 40vh; min-height: 300px; 
         }
-        .gallery-main img { flex: 0 0 100%; object-fit: contain; scroll-snap-align: start; }
+        /* === НОВОЕ: защита фото в галерее === */
+        .gallery-main img { 
+            flex: 0 0 100%; object-fit: contain; scroll-snap-align: start;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-drag: none;
+        }
         .ad-details { padding: 20px; }
 
         /* === CHATS === */
@@ -155,15 +181,23 @@
             display: flex; align-items: center; gap: 10px; cursor: pointer; 
             -webkit-tap-highlight-color: transparent; 
         }
+        /* === НОВОЕ: контекст объявления в чате === */
         .chat-ad-context { 
             display: flex; align-items: center; gap: 10px; padding: 10px; 
             background: var(--bg); border-radius: 10px; margin-top: 10px; 
-            cursor: pointer; -webkit-tap-highlight-color: transparent; 
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            border: 1px solid var(--border);
         }
-        .chat-ad-context img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .chat-ad-context:hover { background: var(--card); }
+        .chat-ad-context img { 
+            width: 50px; height: 50px; border-radius: 8px; object-fit: cover;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
         .chat-ad-context .ad-info { flex: 1; }
         .chat-ad-context .ad-info .title { font-size: 13px; font-weight: bold; margin-bottom: 3px; }
         .chat-ad-context .ad-info .price { font-size: 12px; color: var(--blue); font-weight: bold; }
+        
         .dropdown { 
             display: none; position: absolute; top: 40px; right: 0; 
             background: var(--card); border: 1px solid var(--border); 
@@ -234,7 +268,7 @@
             padding:10px; display:none; 
         }
 
-        /* === TECHNICAL BREAK OVERLAY — ИСПРАВЛЕНО: без часов === */
+        /* === TECHNICAL BREAK OVERLAY === */
         #tech-break-overlay {
             display: none;
             position: fixed;
@@ -277,9 +311,9 @@
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false">
 
-<!-- TECHNICAL BREAK OVERLAY — ИСПРАВЛЕНО: без часов -->
+<!-- TECHNICAL BREAK OVERLAY -->
 <div id="tech-break-overlay">
     <div class="tech-break-icon">🔧</div>
     <div class="tech-break-title">Технический перерыв</div>
@@ -366,31 +400,24 @@
     <button onclick="showPage('home')" style="background:none; border:none; color:var(--blue); font-weight:bold; padding:10px 0; cursor:pointer;">← Назад</button>
     <h2>🛡️ Панель Модератора</h2>
     
-    <!-- ТЕХНИЧЕСКИЙ ПЕРЕРЫВ — ИСПРАВЛЕНО: нормальная логика ВКЛ/ВЫКЛ -->
+    <!-- ТЕХНИЧЕСКИЙ ПЕРЕРЫВ -->
     <div class="admin-section" style="border: 2px solid #ff9500;">
         <h3 style="color: #ff9500; margin-top:0;">🔧 Технический перерыв</h3>
-        
         <div id="tech-break-status" style="padding: 15px; background: var(--bg); border-radius: 8px; margin-bottom: 15px;">
             <b>Статус:</b> <span id="tech-break-status-text" style="color: var(--gray);">Загрузка...</span>
         </div>
-        
         <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
             <button class="btn btn-blue" id="btn-enable-break" onclick="enableTechBreak()">▶️ Включить перерыв</button>
             <button class="btn btn-red" id="btn-disable-break" onclick="disableTechBreak()" style="display:none;">⏹️ Выключить перерыв</button>
         </div>
-        
         <div id="tech-break-settings" style="display:none; border-top: 1px solid var(--border); padding-top: 15px;">
             <h4>⚙️ Настройки перерыва:</h4>
-            
             <label>📝 Описание (что видят пользователи):</label>
             <textarea id="tech-break-description" rows="3" placeholder="Например: Технические работы с 18:00 до 10:00. Приносим извинения за неудобства."></textarea>
-            
             <label>⏰ Время начала (МСК):</label>
             <input type="time" id="tech-break-start-time">
-            
             <label>⏰ Время окончания (МСК) — для авто-выключения:</label>
             <input type="time" id="tech-break-end-time">
-            
             <label>📅 Дни недели (оставьте пустым для ежедневного):</label>
             <select id="tech-break-days" multiple style="height: 100px; width: 100%;">
                 <option value="1">Понедельник</option>
@@ -402,9 +429,20 @@
                 <option value="0">Воскресенье</option>
             </select>
             <small style="color: var(--gray);">💡 Удерживайте Ctrl/Cmd для выбора нескольких дней</small>
-            
             <button class="btn btn-green" style="margin-top: 15px;" onclick="saveTechBreakSettings()">💾 Сохранить настройки</button>
         </div>
+    </div>
+    
+    <!-- === НОВОЕ: БЛОКИРОВКА ОБЪЯВЛЕНИЙ ПО ID === -->
+    <div class="admin-section" style="border: 2px solid var(--red);">
+        <h3 style="color: var(--red); margin-top:0;">🚫 Блокировка объявлений по ID</h3>
+        <input type="text" id="admin-block-ad-id" placeholder="Введите ID объявления...">
+        <textarea id="admin-block-ad-reason" rows="2" placeholder="Причина блокировки (обязательно)..."></textarea>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-red" onclick="adminBlockAd()">🔒 Заблокировать</button>
+            <button class="btn btn-green" onclick="adminUnblockAd()">🔓 Разблокировать</button>
+        </div>
+        <div id="admin-block-ad-status" style="margin-top:10px; font-size:14px;"></div>
     </div>
     
     <div class="admin-section">
@@ -481,6 +519,7 @@
             </div>
         </div>
         
+        <!-- === НОВОЕ: КОНТЕКСТ ОБЪЯВЛЕНИЯ В ЧАТЕ === -->
         <div id="chat-ad-context" class="chat-ad-context" style="display:none;" onclick="openAdFromChat()">
             <img id="chat-ad-img" src="" alt="">
             <div class="ad-info">
@@ -670,7 +709,7 @@
             if(u.email === ADMIN_ID) {
                 document.getElementById('admin-zone').style.display = 'block';
                 initAdminMod();
-                updateTechBreakStatus();  // ← Обновляем статус при входе админа
+                updateTechBreakStatus();
             }
             loadChatsList();
             loadUnreadNotifications();
@@ -814,7 +853,7 @@
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // === ИСПРАВЛЕННАЯ upImg — возвращает ТОЛЬКО строку-ссылку ===
+    // === ЗАГРУЗКА ФОТО ===
     async function upImg(file) {
         if(!file) return '';
         
@@ -834,7 +873,6 @@
             
             let d = await r.json(); 
             
-            // === ВАЖНО: возвращаем ТОЛЬКО строку, не объект! ===
             if(d.data && d.data.url) {
                 return String(d.data.url).trim();
             }
@@ -895,7 +933,7 @@
         }
     }
 
-    // === ИСПРАВЛЕННАЯ submitAd — единое поле photos + проверка ===
+    // === ПУБЛИКАЦИЯ ОБЪЯВЛЕНИЯ ===
     async function submitAd() {
         console.log('📤 Публикация объявления...');
         const btn = document.getElementById('sendAdBtn');
@@ -905,7 +943,6 @@
         const files = document.getElementById('post-images').files;
         let urls = [];
         
-        // === Загружаем фото ===
         if(files && files.length > 0) {
             for(let i = 0; i < files.length; i++) {
                 btn.innerText = `Загрузка фото ${i+1}/${files.length}...`;
@@ -919,7 +956,6 @@
             }
         }
         
-        // === Проверка: должно быть хотя бы 1 фото ===
         if(urls.length === 0) { 
             alert("❌ Не удалось загрузить ни одного фото. Проверьте файлы и интернет.");
             btn.disabled = false; 
@@ -927,7 +963,6 @@
             return; 
         }
         
-        // === Данные объявления — ЕДИНОЕ ПОЛЕ "photos" ===
         let adData = {
             title: document.getElementById('post-title').value.trim(),
             price: document.getElementById('post-price').value,
@@ -935,18 +970,16 @@
             loc: document.getElementById('post-loc').value.trim(),
             desc: document.getElementById('post-desc').value.trim(),
             status: 'pending',
-            photos: urls,  // ← Только "photos", никаких "images"!
+            photos: urls,
             createdAt: new Date(),
             updatedAt: new Date()
         };
 
         try {
             if(editingAdId) {
-                // Редактирование
                 await db.collection('ads').doc(editingAdId).update(adData);
                 alert("✅ Изменения отправлены на модерацию!");
             } else {
-                // Новое объявление
                 adData.authorId = user.uid;
                 await db.collection('ads').add(adData);
                 alert("✅ Объявление отправлено на модерацию!");
@@ -978,6 +1011,7 @@
         });
     }
 
+    // === ЗАГРУЗКА ОБЪЯВЛЕНИЙ ===
     function loadFeed() {
         console.log('🔄 Загрузка объявлений...');
         db.collection('ads').where('status','==','active')
@@ -1000,20 +1034,22 @@
             });
     }
 
-    // === ИСПРАВЛЕННАЯ renderAds — безопасное отображение фото ===
+    // === ОТОБРАЖЕНИЕ ОБЪЯВЛЕНИЙ С ЗАЩИТОЙ ФОТО ===
     function renderAds(arr) {
         let h = '';
         arr.forEach(ad => {
             const photos = ad.photos && Array.isArray(ad.photos) ? ad.photos : [];
             const imgUrl = photos[0] || '';
-            const placeholder = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo+Photo%3C/text%3E%3C/svg%3E';
+            const placeholder = 'image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo+Photo%3C/text%3E%3C/svg%3E';
             
             h += `
             <div class="card" onclick="openAd('${ad.id}')">
                 <img src="${imgUrl || placeholder}" 
                      onerror="this.src='${placeholder}'; this.onerror=null;"
                      alt="${ad.title}"
-                     style="width:100%;height:170px;object-fit:cover;background:#eee;">
+                     style="width:100%;height:170px;object-fit:cover;background:#eee;pointer-events:none;-webkit-user-drag:none;"
+                     oncontextmenu="return false"
+                     ondragstart="return false">
                 <div class="card-body">
                     <div class="price">${ad.price} ₽</div>
                     <div style="font-size:14px; margin:4px 0; height:38px; overflow:hidden;">${ad.title}</div>
@@ -1031,7 +1067,7 @@
         renderAds(filtered);
     }
 
-    // === ИСПРАВЛЕННАЯ openAd — безопасная галерея ===
+    // === ОТКРЫТИЕ ОБЪЯВЛЕНИЯ С ВОДЯНЫМ ЗНАКОМ ===
     async function openAd(id) {
         console.log('👁 Открытие объявления:', id);
         const d = await db.collection('ads').doc(id).get();
@@ -1048,9 +1084,20 @@
         
         let imgs = '';
         if(photos.length > 0) {
-            imgs = photos.map(p => 
-                `<img src="${p}" onerror="this.src='${placeholder}'; this.onerror=null;" style="flex:0 0 100%;object-fit:contain;scroll-snap-align:start;">`
-            ).join('');
+            // === НОВОЕ: ВОДЯНОЙ ЗНАК ДЛЯ ОДОБРЕННЫХ ОБЪЯВЛЕНИЙ ===
+            imgs = photos.map(p => {
+                const watermark = ad.status === 'active' 
+                    ? `<div style="position:absolute;bottom:10px;right:10px;color:rgba(255,255,255,0.5);font-weight:bold;font-size:14px;text-shadow:1px 1px 2px rgba(0,0,0,0.8);pointer-events:none;z-index:10;">LookUp</div>`
+                    : '';
+                return `<div style="position:relative;flex:0 0 100%;height:100%;">
+                    <img src="${p}" 
+                         onerror="this.src='${placeholder}'; this.onerror=null;" 
+                         style="width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;"
+                         oncontextmenu="return false"
+                         ondragstart="return false">
+                    ${watermark}
+                </div>`;
+            }).join('');
         } else {
             imgs = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#666;background:#000;">Нет фото</div>`;
         }
@@ -1063,7 +1110,7 @@
                 <p style="color:var(--gray); margin-bottom:20px;">${ad.loc} • ${ad.cat}</p>
                 <div style="white-space:pre-wrap; line-height:1.5;">${ad.desc}</div>
                 <div class="mod-card" style="margin-top:25px; display:flex; align-items:center; gap:15px; cursor:pointer;" onclick="showPublicProfile('${ad.authorId}')">
-                    <img src="${authorData.avatar || placeholder}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;">
+                    <img src="${authorData.avatar || placeholder}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;pointer-events:none;" oncontextmenu="return false">
                     <div><b>${authorData.name}</b><br><small style="color:#ff9500; font-weight:bold;">⭐ ${rAvg} (${authorData.reviewCount || 0} отз.)</small></div>
                 </div>
                 <button class="btn btn-blue" style="margin-top:15px;" onclick="requireAuth(() => startNewChat('${ad.authorId}', '${authorData.name}', '${authorData.avatar}', '${ad.id}'))">Написать продавцу</button>
@@ -1098,13 +1145,15 @@
                 let ad = adDoc.data();
                 const photos = ad.photos && Array.isArray(ad.photos) ? ad.photos : [];
                 const imgUrl = photos[0] || '';
-                const placeholder = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo+Photo%3C/text%3E%3C/svg%3E';
+                const placeholder = 'image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22165%22 height=%22170%22%3E%3Crect fill=%22%23eee%22 width=%22165%22 height=%22170%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo+Photo%3C/text%3E%3C/svg%3E';
                 
                 h += `
                 <div class="card" onclick="openAd('${adDoc.id}')">
                     <img src="${imgUrl || placeholder}" 
                          onerror="this.src='${placeholder}'; this.onerror=null;"
-                         style="width:100%;height:170px;object-fit:cover;background:#eee;">
+                         style="width:100%;height:170px;object-fit:cover;background:#eee;pointer-events:none;-webkit-user-drag:none;"
+                         oncontextmenu="return false"
+                         ondragstart="return false">
                     <div class="card-body">
                         <div class="price">${ad.price} ₽</div>
                         <div style="font-size:14px; margin:4px 0;">${ad.title}</div>
@@ -1115,7 +1164,7 @@
         });
     }
 
-    // === ИСПРАВЛЕННАЯ loadProfileAds — безопасное фото ===
+    // === МОИ ТОВАРЫ С ПРИЧИНОЙ ОТКЛОНЕНИЯ ===
     function loadProfileAds() {
         if(!user) return;
         db.collection('ads').where('authorId','==',user.uid).onSnapshot(snap => {
@@ -1125,17 +1174,24 @@
                 let st = ad.status === 'active' ? 'Активно' : (ad.status === 'pending' ? 'На проверке' : 'Отклонено');
                 let clr = ad.status === 'active' ? 'var(--green)' : (ad.status === 'pending' ? '#ff9500' : 'red');
                 
+                // === НОВОЕ: ПОКАЗ ПРИЧИНЫ ОТКЛОНЕНИЯ ===
+                let reasonText = '';
+                if(ad.status === 'rejected' && ad.rejectReason) {
+                    reasonText = ` <span style="color:var(--red);font-size:11px;">(${ad.rejectReason})</span>`;
+                }
+                
                 const photos = ad.photos && Array.isArray(ad.photos) ? ad.photos : [];
                 const imgUrl = photos[0] || '';
-                const placeholder = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect fill=%22%23ddd%22 width=%2250%22 height=%2250%22/%3E%3C/svg%3E';
+                const placeholder = 'image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect fill=%22%23ddd%22 width=%2250%22 height=%2250%22/%3E%3C/svg%3E';
                 
                 h += `
                 <div class="mod-card" style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; gap:10px; align-items:center;">
                         <img src="${imgUrl || placeholder}" 
                              onerror="this.src='${placeholder}'; this.onerror=null;"
-                             style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
-                        <div><b>${ad.title}</b><br><small style="color:${clr}">${st}</small></div>
+                             style="width:50px; height:50px; border-radius:8px; object-fit:cover;pointer-events:none;"
+                             oncontextmenu="return false">
+                        <div><b>${ad.title}</b><br><small style="color:${clr}">${st}${reasonText}</small></div>
                     </div>
                     <div>
                         <button class="btn btn-blue" style="width:auto; padding:8px; margin-right:5px;" onclick="editAd('${doc.id}')">✏️</button>
@@ -1147,6 +1203,7 @@
         });
     }
 
+    // === НОВЫЙ ЧАТ С КОНТЕКСТОМ ОБЪЯВЛЕНИЯ ===
     async function startNewChat(otherId, otherName, otherAvatar, adId = null) {
         console.log('💬 Новый чат:', otherId, adId);
         if(otherId === user.uid) { alert("Это ваше объявление."); return; }
@@ -1161,7 +1218,7 @@
             blocked: false,
             muted: {},
             pinned: {},
-            adId: adId,
+            adId: adId || null,  // === НОВОЕ: сохраняем ID объявления ===
             createdAt: new Date()
         };
         
@@ -1223,6 +1280,7 @@
         return `Был в сети ${date.toLocaleDateString('ru-RU')}`;
     }
 
+    // === ОТКРЫТИЕ ЧАТА С КОНТЕКСТОМ ОБЪЯВЛЕНИЯ ===
     function openChatWindow(chatId, title, targetUid, isSupport, avatarUrl = '', adId = null) {
         console.log('🪟 Открытие чата:', chatId);
         currentChatId = chatId;
@@ -1252,6 +1310,7 @@
         document.getElementById('chat-last-seen').innerText = "";
         openModal('modal-chat');
         
+        // === НОВОЕ: ПОКАЗ КОНТЕКСТА ОБЪЯВЛЕНИЯ В ЧАТЕ ===
         if(adId && !isSupport) {
             db.collection('ads').doc(adId).get().then(doc => {
                 if(doc.exists) {
@@ -1474,7 +1533,7 @@
         inp.value = '';
     }
 
-    // === ИСПРАВЛЕННАЯ loadChatsList ===
+    // === ЗАГРУЗКА СПИСКА ЧАТОВ ===
     function loadChatsList() {
         if(!user) return;
         db.collection('chat_list').where('participants', 'array-contains', user.uid)
@@ -1656,7 +1715,7 @@
         closeModal('modal-report-review');
     }
 
-    // === ИСПРАВЛЕННАЯ initAdminMod — без дубликатов, с проверкой фото ===
+    // === МОДЕРАЦИЯ ===
     function initAdminMod() {
         // Аватарки на модерации
         db.collection('users').where('pendingAva', '!=', null).onSnapshot(snap => {
@@ -1664,7 +1723,7 @@
             snap.forEach(doc => {
                 let d = doc.data();
                 h += `<div class="mod-card">
-                    <b>${d.name}</b> (UID: ${doc.id})<br><img src="${d.pendingAva}" style="height:100px; margin:10px 0; border-radius:50%;">
+                    <b>${d.name}</b> (UID: ${doc.id})<br><img src="${d.pendingAva}" style="height:100px; margin:10px 0; border-radius:50%;pointer-events:none;" oncontextmenu="return false">
                     <br><button class="btn btn-blue" onclick="approveAva('${doc.id}', '${d.pendingAva}')">✅ Одобрить</button>
                     <button class="btn btn-red" onclick="rejectAva('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
                 </div>`;
@@ -1688,7 +1747,7 @@
             document.getElementById('mod-names').innerHTML = h || 'Нет никнеймов на проверке';
         });
 
-        // === ОБЪЯВЛЕНИЯ НА МОДЕРАЦИИ — ОДИН ОБРАБОТЧИК С ПРОВЕРКОЙ ФОТО ===
+        // === ОБЪЯВЛЕНИЯ НА МОДЕРАЦИИ С ПРИЧИНОЙ ОТКЛОНЕНИЯ ===
         db.collection('ads').where('status', '==', 'pending').onSnapshot(snap => {
             let h = '';
             snap.forEach(doc => {
@@ -1700,19 +1759,23 @@
                 if(photos.length > 0) {
                     imgs = photos.map(p => 
                         `<img src="${p}" 
-                              onerror="this.style.display='none'; this.parentElement.innerHTML+='<p style=\'color:red;font-size:12px\'>❌ Ошибка</p>';" 
-                              style="height:120px;border-radius:5px;object-fit:contain;background:#000;">`
+                              onerror="this.style.display='none'" 
+                              style="height:120px;border-radius:5px;object-fit:contain;background:#000;pointer-events:none;"
+                              oncontextmenu="return false"
+                              ondragstart="return false">`
                     ).join('');
                 } else {
                     imgs = '<p style="color:var(--red);padding:20px;text-align:center;">❌ Нет фото в объявлении</p>';
                 }
                 
+                // === НОВОЕ: КНОПКА ОТКЛОНЕНИЯ С ПРИЧИНОЙ ===
                 h += `<div class="mod-card">
                     <b>${d.title || 'Без названия'}</b> (${d.price} ₽)<br>
+                    <small>ID: ${doc.id}</small><br>
                     <small>UID автора: ${d.authorId}</small><br>${d.desc || 'Нет описания'}<br>
                     <div class="mod-gallery" style="display:flex;gap:5px;overflow-x:auto;margin:10px 0;padding:5px;background:#000;border-radius:5px;">${imgs}</div>
                     <button class="btn btn-blue" onclick="approveAd('${doc.id}')">✅ Одобрить</button>
-                    <button class="btn btn-red" onclick="rejectAd('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
+                    <button class="btn btn-red" onclick="rejectAdWithReason('${doc.id}')" style="margin-top:5px;">❌ Отклонить</button>
                 </div>`;
             });
             document.getElementById('mod-ads').innerHTML = h || 'Нет объявлений на проверке';
@@ -1773,7 +1836,7 @@
         });
     }
 
-    // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ОДОБРЕНИЯ/ОТКЛОНЕНИЯ ===
+    // === ОДОБРЕНИЕ ОБЪЯВЛЕНИЯ ===
     async function approveAd(adId) {
         try {
             await db.collection('ads').doc(adId).update({
@@ -1787,15 +1850,64 @@
         }
     }
 
-    async function rejectAd(adId) {
+    // === НОВОЕ: ОТКЛОНЕНИЕ С ПРИЧИНОЙ ===
+    async function rejectAdWithReason(adId) {
+        const reason = prompt("❌ Укажите причину отклонения:");
+        if(!reason || reason.trim() === '') {
+            alert("Причина обязательна!");
+            return;
+        }
         try {
             await db.collection('ads').doc(adId).update({
                 status: 'rejected',
-                rejectedAt: new Date()
+                rejectedAt: new Date(),
+                rejectReason: reason.trim()  // === НОВОЕ: сохраняем причину ===
             });
-            alert('❌ Объявление отклонено');
+            alert('✅ Объявление отклонено. Пользователь увидит причину в профиле.');
         } catch(e) {
             console.error('Ошибка отклонения:', e);
+            alert('Ошибка: ' + e.message);
+        }
+    }
+
+    // === НОВОЕ: БЛОКИРОВКА ОБЪЯВЛЕНИЯ ПО ID ===
+    async function adminBlockAd() {
+        const adId = document.getElementById('admin-block-ad-id').value.trim();
+        const reason = document.getElementById('admin-block-ad-reason').value.trim();
+        
+        if(!adId) return alert("Введите ID объявления!");
+        if(!reason) return alert("Введите причину блокировки!");
+        
+        try {
+            await db.collection('ads').doc(adId).update({
+                status: 'blocked',
+                blockedAt: new Date(),
+                blockReason: reason,
+                blockedBy: ADMIN_ID
+            });
+            document.getElementById('admin-block-ad-status').innerHTML = `<span style="color:var(--green);">✅ Объявление ${adId} заблокировано</span>`;
+            alert('✅ Объявление заблокировано!');
+        } catch(e) {
+            console.error('Ошибка блокировки:', e);
+            alert('Ошибка: ' + e.message);
+        }
+    }
+    
+    async function adminUnblockAd() {
+        const adId = document.getElementById('admin-block-ad-id').value.trim();
+        if(!adId) return alert("Введите ID объявления!");
+        
+        try {
+            await db.collection('ads').doc(adId).update({
+                status: 'active',
+                blockedAt: firebase.firestore.FieldValue.delete(),
+                blockReason: firebase.firestore.FieldValue.delete(),
+                blockedBy: firebase.firestore.FieldValue.delete()
+            });
+            document.getElementById('admin-block-ad-status').innerHTML = `<span style="color:var(--green);">✅ Объявление ${adId} разблокировано</span>`;
+            alert('✅ Объявление разблокировано!');
+        } catch(e) {
+            console.error('Ошибка разблокировки:', e);
             alert('Ошибка: ' + e.message);
         }
     }
@@ -1903,30 +2015,20 @@
         alert("Отзыв удален, рейтинг пересчитан!");
     }
 
-    // === ТЕХНИЧЕСКИЙ ПЕРЕРЫВ — ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ ===
-    
-    // Проверка перерыва при загрузке (для пользователей)
+    // === ТЕХНИЧЕСКИЙ ПЕРЕРЫВ ===
     async function checkTechBreak() {
         if (!user) return;
-        
-        // Админу не показываем оверлей
         if (user.email === ADMIN_ID) {
             document.getElementById('tech-break-overlay').classList.remove('active');
             return;
         }
-        
         try {
             const breakDoc = await db.collection('system').doc('techBreak').get();
             if (!breakDoc.exists) return;
-            
             const breakData = breakDoc.data();
-            
             if (breakData.enabled) {
-                // Показываем перерыв
                 document.getElementById('tech-break-overlay').classList.add('active');
                 document.getElementById('tech-break-desc').innerText = breakData.description || 'Сайт временно недоступен. Приносим извинения за неудобства.';
-                
-                // Проверяем авто-выключение
                 if (breakData.autoDisable && breakData.endTime) {
                     const now = new Date();
                     const endTime = new Date(breakData.endTime);
@@ -1935,7 +2037,6 @@
                     }
                 }
             } else {
-                // Скрываем перерыв
                 document.getElementById('tech-break-overlay').classList.remove('active');
             }
         } catch (e) {
@@ -1943,24 +2044,17 @@
         }
     }
     
-    // Включить перерыв (мгновенно, без обновления)
     async function enableTechBreak() {
         document.getElementById('tech-break-settings').style.display = 'block';
         document.getElementById('btn-enable-break').style.display = 'none';
         document.getElementById('btn-disable-break').style.display = 'inline-block';
-        
-        // Загружаем текущие настройки
         try {
             const breakDoc = await db.collection('system').doc('techBreak').get();
             if (breakDoc.exists) {
                 const data = breakDoc.data();
                 document.getElementById('tech-break-description').value = data.description || '';
-                if (data.startTime) {
-                    document.getElementById('tech-break-start-time').value = data.startTime;
-                }
-                if (data.endTime) {
-                    document.getElementById('tech-break-end-time').value = data.endTime;
-                }
+                if (data.startTime) document.getElementById('tech-break-start-time').value = data.startTime;
+                if (data.endTime) document.getElementById('tech-break-end-time').value = data.endTime;
                 if (data.days && data.days.length > 0) {
                     const daysSelect = document.getElementById('tech-break-days');
                     for(let i = 0; i < daysSelect.options.length; i++) {
@@ -1968,34 +2062,21 @@
                     }
                 }
             }
-        } catch (e) {
-            console.error('Ошибка загрузки настроек:', e);
-        }
-        
-        // Сразу включаем перерыв в базе
+        } catch (e) { console.error('Ошибка загрузки настроек:', e); }
         await updateTechBreakInDB(true);
     }
     
-    // Выключить перерыв (мгновенно, без обновления)
     async function disableTechBreak() {
         try {
             await updateTechBreakInDB(false);
-            
             document.getElementById('tech-break-settings').style.display = 'none';
             document.getElementById('btn-enable-break').style.display = 'inline-block';
             document.getElementById('btn-disable-break').style.display = 'none';
-            
-            // Скрываем оверлей
             document.getElementById('tech-break-overlay').classList.remove('active');
-            
             updateTechBreakStatus();
-        } catch (e) {
-            console.error('Ошибка выключения перерыва:', e);
-            alert('Ошибка: ' + e.message);
-        }
+        } catch (e) { alert('Ошибка: ' + e.message); }
     }
     
-    // Обновление в базе данных (вкл/выкл)
     async function updateTechBreakInDB(enabled) {
         const description = document.getElementById('tech-break-description').value.trim();
         const startTime = document.getElementById('tech-break-start-time').value;
@@ -2003,10 +2084,8 @@
         const daysSelect = document.getElementById('tech-break-days');
         const selectedDays = Array.from(daysSelect.selectedOptions).map(opt => opt.value);
         
-        // Рассчитываем время окончания если указано
         let autoDisable = false;
         let endDateTime = null;
-        
         if (endTime && enabled) {
             autoDisable = true;
             const now = new Date();
@@ -2014,11 +2093,7 @@
             const [hours, minutes] = endTime.split(':');
             endDateTime = new Date(moscowTime);
             endDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
-            
-            // Если время уже прошло сегодня, ставим на завтра
-            if (endDateTime <= moscowTime) {
-                endDateTime.setDate(endDateTime.getDate() + 1);
-            }
+            if (endDateTime <= moscowTime) endDateTime.setDate(endDateTime.getDate() + 1);
         }
         
         await db.collection('system').doc('techBreak').set({
@@ -2033,7 +2108,6 @@
         }, { merge: true });
     }
     
-    // Сохранить настройки (НЕ меняет статус вкл/выкл!)
     async function saveTechBreakSettings() {
         const description = document.getElementById('tech-break-description').value.trim();
         const startTime = document.getElementById('tech-break-start-time').value;
@@ -2041,20 +2115,14 @@
         const daysSelect = document.getElementById('tech-break-days');
         const selectedDays = Array.from(daysSelect.selectedOptions).map(opt => opt.value);
         
-        if (!description) {
-            alert('📝 Введите описание перерыва');
-            return;
-        }
+        if (!description) { alert('📝 Введите описание перерыва'); return; }
         
         try {
-            // Получаем текущий статус enabled
             const breakDoc = await db.collection('system').doc('techBreak').get();
             const currentEnabled = breakDoc.exists ? breakDoc.data().enabled : false;
             
-            // Рассчитываем время окончания
             let autoDisable = false;
             let endDateTime = null;
-            
             if (endTime) {
                 autoDisable = true;
                 const now = new Date();
@@ -2062,14 +2130,11 @@
                 const [hours, minutes] = endTime.split(':');
                 endDateTime = new Date(moscowTime);
                 endDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
-                
-                if (endDateTime <= moscowTime) {
-                    endDateTime.setDate(endDateTime.getDate() + 1);
-                }
+                if (endDateTime <= moscowTime) endDateTime.setDate(endDateTime.getDate() + 1);
             }
             
             await db.collection('system').doc('techBreak').set({
-                enabled: currentEnabled,  // Сохраняем текущий статус!
+                enabled: currentEnabled,
                 description: description,
                 startTime: startTime || null,
                 endTime: endDateTime ? endDateTime.toISOString() : null,
@@ -2081,13 +2146,9 @@
             
             alert('✅ Настройки сохранены!');
             updateTechBreakStatus();
-        } catch (e) {
-            console.error('Ошибка сохранения:', e);
-            alert('Ошибка: ' + e.message);
-        }
+        } catch (e) { alert('Ошибка: ' + e.message); }
     }
     
-    // Обновление статуса (текст + кнопки)
     async function updateTechBreakStatus() {
         try {
             const breakDoc = await db.collection('system').doc('techBreak').get();
@@ -2102,26 +2163,19 @@
             }
             
             const data = breakDoc.data();
-            
             if (data.enabled) {
                 statusText.innerHTML = '<span style="color: var(--red); font-weight: bold;">🔴 ВКЛЮЧЕН</span>';
                 document.getElementById('btn-enable-break').style.display = 'none';
                 document.getElementById('btn-disable-break').style.display = 'inline-block';
                 document.getElementById('tech-break-settings').style.display = 'block';
                 
-                // Показываем детали
                 let details = '<br><small style="color: var(--gray); margin-top: 10px; display: block;">';
                 details += '📝 ' + (data.description || 'Нет описания') + '<br>';
-                
-                if (data.startTime) {
-                    details += '⏰ Начало: ' + data.startTime + '<br>';
-                }
-                
+                if (data.startTime) details += '⏰ Начало: ' + data.startTime + '<br>';
                 if (data.autoDisable && data.endTime) {
                     const endDate = new Date(data.endTime);
                     details += '⏰ Авто-выключение: ' + endDate.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + '<br>';
                 }
-                
                 if (data.days && data.days.length > 0) {
                     const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
                     const selectedDayNames = data.days.map(d => dayNames[parseInt(d)]);
@@ -2129,7 +2183,6 @@
                 } else {
                     details += '📅 Дни: Ежедневно<br>';
                 }
-                
                 details += '</small>';
                 statusText.innerHTML += details;
             } else {
